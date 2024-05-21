@@ -9,9 +9,10 @@ from .analysis import (
 )
 
 class Loading:
-    def __init__(self, dead_load, rain_load):
+    def __init__(self, dead_load, rain_load, include_sw = True):
         self.dead_load = dead_load # Units: k/in^2
         self.rain_load = rain_load # Units: k/in^2
+        self.include_sw = include_sw
 
 class PrimaryMember(Beam):
     pass
@@ -43,6 +44,9 @@ class RoofBay:
         self.mirrored_right = mirrored_right
 
     def get_secondary_spacing(self):
+        '''
+        Method to get the secondary member spacing, assuming all members are evenly spaced.
+        '''
         primary_length = self.primary_framing.primary_members[0].length
         n_secondary = len(self.secondary_framing.secondary_members)
 
@@ -50,39 +54,38 @@ class RoofBay:
 
         return secondary_spacing
 
-    def get_initial_secondary_loading(self):
-        secondary_loading = {}
-        # First deal with the dead load
-        trib_w = self.get_secondary_spacing()
+    def get_secondary_dl(self):
+        '''
+        Method to get the dead load (including the member self-weight, if enabled) acting on each secondary framing member.
+        '''
+        # Initialize dictionary to hold load values
+        secondary_dl = {}
+
+        # Calculate tributary width for each member
+        trib_w = [self.get_secondary_spacing() for _ in range(len(self.secondary_framing.secondary_members))]
+
+        # Reduce tributary width for end members if roof bay is not mirrored on each side
+        if not self.mirrored_left:
+            trib_w[0] = trib_w[0]/2
+        if not self.mirrored_right:
+            trib_w[-1] = trib_w[-1]/2
+        
         q_dl = self.loading.dead_load
-        w_dl = q_dl*trib_w # Units: k/in
         x_i_dl = 0
         for idx, member in self.secondary_framing.secondary_members:
+            # Calculate distributed dead load for each member
+            w_dl = q_dl*trib_w[idx] # Units: k/in
             x_j_dl = member.length
 
-            if idx not in secondary_loading.keys():
-                secondary_loading[idx] = []
+            if idx not in secondary_dl.keys():
+                secondary_dl[idx] = []
 
-            secondary_loading[idx].append(DistLoad(location=(x_i_dl, x_j_dl), magnitude=((0, 0), (-w_dl, -w_dl), (0, 0))))
+            # Calculate self-weight, if enabled
+            if self.loading.include_sw:
+                sw = member.size.weight/1000/12 # Convert lb/ft to kip/in
+            else:
+                sw = 0
 
-        # Next deal with the rain load
-        conv = 62.4/(12**3)/1000
-        q_rl = self.loading.rain_load
-        rain_depth_i = q_rl/conv
-        rain_length = rain_depth_i/(self.secondary_framing.slope/12)
-        w_i_rl = rain_depth_i*conv
-        x_i_rl = 0
-        for idx, member in self.secondary_framing.secondary_members:
-            if rain_length > member.length:
-                rain_depth_j = rain_depth_i - (self.secondary_framing.slope/12)*member.length
-                x_j_rl = member.length
-            elif rain_length <= member.length:
-                rain_depth_j = 0
-                x_j_rl = rain_length
-            w_j_rl = rain_depth_j*conv
-
-            if idx not in secondary_loading.keys():
-                secondary_loading[idx] = []
-
-            secondary_loading[idx].append(DistLoad(location=(x_i_rl, x_j_rl), magnitude=((0, 0), (-w_i_rl, -w_j_rl), (0, 0))))
+            # Place load into dictionary
+            secondary_dl[idx].append(DistLoad(location=(x_i_dl, x_j_dl), magnitude=((0, 0), (-(w_dl+sw), -(w_dl+sw)), (0, 0))))
 
