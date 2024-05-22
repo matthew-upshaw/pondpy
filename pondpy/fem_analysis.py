@@ -37,12 +37,6 @@ class Beam:
       self.mom_inertia = size.properties.Ix
       self.area = size.properties.area
 
-  def add_dload(self, dload, add_type='replace'):
-    if add_type == 'replace':
-      self.dloads = dload
-    elif add_type == 'add':
-      self.dloads.append(dload)
-
 class PointLoad:
   def __init__(self, location, magnitude):
     self.location = location
@@ -394,3 +388,16 @@ class BeamModel:
 
     self.element_forces = elemxyM
     self.support_reactions = support_reactions
+
+  def add_beam_dload(self, dload, add_type='replace'):
+    '''
+    Method to add a distributed load to the Beam object referenced by the BeamModel object.
+    '''
+    # Add the distributed load
+    if add_type == 'replace':
+      self.beam.dloads = dload
+    elif add_type == 'add':
+      self.beam.dloads.append(dload)
+
+    # Re-initialize the analysis
+    self.initialize_analysis()
