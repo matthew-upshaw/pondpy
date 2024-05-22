@@ -45,7 +45,7 @@ class RoofBay:
 
     def get_secondary_spacing(self):
         '''
-        Method to get the secondary member spacing, assuming all members are evenly spaced.
+        Calculates the secondary member spacing, assuming all members are evenly spaced.
         '''
         primary_length = self.primary_framing.primary_members[0].length
         n_secondary = len(self.secondary_framing.secondary_members)
@@ -56,7 +56,7 @@ class RoofBay:
 
     def get_secondary_dl(self):
         '''
-        Method to get the dead load (including the member self-weight, if enabled) acting on each secondary framing member.
+        Calculates the dead load (including the member self-weight, if enabled) acting on each secondary framing member.
         '''
         # Initialize dictionary to hold load values
         secondary_dl = {}
@@ -93,6 +93,9 @@ class RoofBay:
         self.secondary_dl = secondary_dl
 
     def get_primary_sw(self):
+        '''
+        Calculates the self-weight (if enabled) of each primary member.
+        '''
         primary_sw = {}
 
         for idx, member in enumerate(self.primary_framing.primary_members):
@@ -124,7 +127,8 @@ class RoofBayModel:
         
     def create_primary_models(self):
         '''
-        Creates BeamModels for each primary member in the roof bay.
+        Creates BeamModels for each primary member in the roof bay, adds the primary member self-weight (if enabled)
+        to the PrimaryMember object's dloads attribute, and initializes the BeamModels for analysis.
         '''
         primary_models = []
         for idx, p_mem in enumerate(self.roof_bay.primary_framing.primary_members):
@@ -141,7 +145,8 @@ class RoofBayModel:
 
     def create_secondary_models(self):
         '''
-        Creates BeamModels for each secondary member in the roof bay.
+        Creates BeamModels for each secondary member in the roof bay, adds the secondary member dead load to the
+        SecondaryMember object's dloads attribute, and initializes the BeamModels for analysis.
         '''
         secondary_models = []
         for idx, s_mem in enumerate(self.roof_bay.secondary_framing.secondary_members):
