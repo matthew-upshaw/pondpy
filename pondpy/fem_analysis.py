@@ -1,8 +1,5 @@
-from joistpy import sji
 import math
 import numpy as np
-import pandas as pd
-from steelpy import aisc
 
 class SteelBeamSize:
   def __init__(self, name, properties, e_mod=29000, section_type='AISC'):
@@ -25,7 +22,7 @@ class SteelJoistSize:
     return f'{self.name}'
 
 class Beam:
-  def __init__(self, length, size, ploads, dloads, supports):
+  def __init__(self, length, size, supports, ploads=[], dloads=[]):
     self.length = length
     self.size = size
     self.ploads = ploads

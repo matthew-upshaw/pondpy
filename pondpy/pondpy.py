@@ -1,91 +1,39 @@
-import pandas as pd
+from joistpy import sji
+from steelpy import aisc
 
-from .analysis import (
-    Beam,
-    BeamModel,
-    DistLoad,
+from fem_analysis import (
     SteelBeamSize,
     SteelJoistSize,
 )
 
-class Loading:
-    def __init__(self, dead_load, rain_load, include_sw = True):
-        self.dead_load = dead_load # Units: k/in^2
-        self.rain_load = rain_load # Units: k/in^2
-        self.include_sw = include_sw
+from pond_analysis import (
+    Loading,
+    PrimaryFraming,
+    PrimaryMember,
+    RoofBay,
+    SecondaryFraming,
+    SecondaryMember,
+)
 
-class PrimaryMember(Beam):
-    pass
+# Define sizes for primary and secondary members
+w16x26 = SteelBeamSize('W16X26', aisc.W_shapes.W16X26)
+k_12k1 = SteelJoistSize('12K1', sji.K_Series.K_12K1)
 
-class SecondaryMember(Beam):
-    pass
+# Define loading for the roof bay
+loading = Loading(20/1000/12, 25/1000/12, include_sw=False)
 
-class PrimaryFraming:
-    def __init__(self, primary_members):
-        self.primary_members = primary_members
+# Define the primary and secondary members
+primary_mem = PrimaryMember(20*12, w16x26, [[0,(1,1,1)],[20*12,(1,1,1)]])
+secondary_mem = SecondaryMember(20*12, k_12k1, [[0,(1,1,1)],[20*12,(1,1,1)]])
 
-    def __str__(self):
-        return f'Primary framing members: {[member.size.name for member in self.primary_members]}'
+# Define the primary and secondary framing
+framing_p = [primary_mem for x in range(2)]
+framing_s = [secondary_mem for x in range(5)]
+primary_framing = PrimaryFraming(framing_p)
+secondary_framing = SecondaryFraming(framing_s)
 
-class SecondaryFraming:
-    def __init__(self, secondary_members, slope=0.25):
-        self.secondary_members = secondary_members
-        self.slope = slope
+# Define the roof bay
+roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
-    def __str__(self):
-        return f'Secondary framing members: {[member.size.name for member in self.secondary_members]}'
-
-class RoofBay:
-    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False):
-        self.primary_framing = primary_framing
-        self.secondary_framing = secondary_framing
-        self.loading = loading
-        self.mirrored_left = mirrored_left
-        self.mirrored_right = mirrored_right
-
-    def get_secondary_spacing(self):
-        '''
-        Method to get the secondary member spacing, assuming all members are evenly spaced.
-        '''
-        primary_length = self.primary_framing.primary_members[0].length
-        n_secondary = len(self.secondary_framing.secondary_members)
-
-        secondary_spacing = primary_length/n_secondary
-
-        return secondary_spacing
-
-    def get_secondary_dl(self):
-        '''
-        Method to get the dead load (including the member self-weight, if enabled) acting on each secondary framing member.
-        '''
-        # Initialize dictionary to hold load values
-        secondary_dl = {}
-
-        # Calculate tributary width for each member
-        trib_w = [self.get_secondary_spacing() for _ in range(len(self.secondary_framing.secondary_members))]
-
-        # Reduce tributary width for end members if roof bay is not mirrored on each side
-        if not self.mirrored_left:
-            trib_w[0] = trib_w[0]/2
-        if not self.mirrored_right:
-            trib_w[-1] = trib_w[-1]/2
-        
-        q_dl = self.loading.dead_load
-        x_i_dl = 0
-        for idx, member in self.secondary_framing.secondary_members:
-            # Calculate distributed dead load for each member
-            w_dl = q_dl*trib_w[idx] # Units: k/in
-            x_j_dl = member.length
-
-            if idx not in secondary_dl.keys():
-                secondary_dl[idx] = []
-
-            # Calculate self-weight, if enabled
-            if self.loading.include_sw:
-                sw = member.size.weight/1000/12 # Convert lb/ft to kip/in
-            else:
-                sw = 0
-
-            # Place load into dictionary
-            secondary_dl[idx].append(DistLoad(location=(x_i_dl, x_j_dl), magnitude=((0, 0), (-(w_dl+sw), -(w_dl+sw)), (0, 0))))
-
+secondary_dl = roof_bay.get_secondary_dl()
+print(secondary_dl[0][0].location)
