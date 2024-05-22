@@ -1,4 +1,5 @@
 import math
+import matplotlib.pyplot as plt
 import numpy as np
 
 class SteelBeamSize:
@@ -192,10 +193,10 @@ class BeamModel:
           m_react_i = (w1*L**2)/12 + ((w2-w1)*L**2)/30
           m_react_j = -(w1*L**2)/12 - ((w2-w1)*L**2)/20
         # Place the fixed end forces in the proper location
-        node_elem_fef[elem[0]][1] += -v_react_i
-        node_elem_fef[elem[0]][2] += -m_react_i
-        node_elem_fef[elem[1]][1] += -v_react_j
-        node_elem_fef[elem[1]][2] += -m_react_j
+        node_elem_fef[elem[0]][1] += v_react_i
+        node_elem_fef[elem[0]][2] += m_react_i
+        node_elem_fef[elem[1]][1] += v_react_j
+        node_elem_fef[elem[1]][2] += m_react_j
 
     self.node_elem_fef = node_elem_fef
 
@@ -390,6 +391,27 @@ class BeamModel:
 
     self.element_forces = elemxyM
     self.support_reactions = support_reactions
+
+  def plot_deflected_shape(self, scale=50):
+    '''
+    Plots the deflected shape of the analyzed beam.
+    '''
+    y_disp = []
+    for i_node in range(len(self.model_nodes)):
+      G_dof = self.dof_num[i_node][0]
+      if G_dof != 0:
+        y_disp.append(self.global_displacement[G_dof][0]*scale)
+      else:
+        y_disp.append(0.0)
+    
+    plt.plot([x/12 for x in self.model_nodes], y_disp)
+
+    plt.xlabel('Length (ft)')
+    plt.ylabel(f'Deflection (in) - Scale={scale}:1')
+
+    plt.grid()
+    
+    plt.show()
 
   def add_beam_dload(self, dload, add_type='add'):
     '''
