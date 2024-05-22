@@ -37,6 +37,12 @@ class Beam:
       self.mom_inertia = size.properties.Ix
       self.area = size.properties.area
 
+  def add_dload(self, dload, add_type='replace'):
+    if add_type == 'replace':
+      self.dloads = dload
+    elif add_type == 'add':
+      self.dloads.append(dload)
+
 class PointLoad:
   def __init__(self, location, magnitude):
     self.location = location
@@ -51,11 +57,14 @@ class BeamModel:
   def __init__(self, beam, max_node_spacing=0.5*12):
     self.beam = beam
     self.max_node_spacing = max_node_spacing
+    self.initialize_analysis()
 
   def get_points_of_interest(self):
-    '''Method to define points of interest along the length of the beam model,
+    '''
+    Method to define points of interest along the length of the beam model,
     including beam start and end points, points of load application, and
-    support points.'''
+    support points.
+    '''
     points_of_interest = []
 
     # Add end points
@@ -82,8 +91,10 @@ class BeamModel:
     self.points_of_interest = points_of_interest
 
   def create_model_nodes_and_elems(self):
-    '''Method to define the model nodes based on the points of interest
-    and maximum node spacing defined by the user.'''
+    '''
+    Method to define the model nodes based on the points of interest
+    and maximum node spacing defined by the user.
+    '''
     model_segments = []
     for idx, poi in enumerate(self.points_of_interest[:-1]):
       segment = (self.points_of_interest[idx], self.points_of_interest[idx+1])
@@ -112,8 +123,10 @@ class BeamModel:
     self.elem_nodes = elem_nodes
 
   def set_support_nodes(self):
-    '''Method to determine which model nodes have been defined by the
-    user as supports.'''
+    '''
+    Method to determine which model nodes have been defined by the
+    user as supports.
+    '''
     node_support = [(0, 0, 0) for _ in range(len(self.model_nodes))]
     for idx, node in enumerate(self.model_nodes):
       for support in self.beam.supports:
@@ -123,8 +136,10 @@ class BeamModel:
     self.node_support = node_support
 
   def set_pload_nodes(self):
-    '''Method to determine which model nodes have been defined by the
-    user as having applied point loads.'''
+    '''
+    Method to determine which model nodes have been defined by the
+    user as having applied point loads.
+    '''
     node_pload = [[0, 0, 0] for _ in range(len(self.model_nodes))]
     for idx, node in enumerate(self.model_nodes):
       for pload in self.beam.ploads:
@@ -135,8 +150,10 @@ class BeamModel:
     self.node_pload = node_pload
 
   def set_dload_elems(self):
-    '''Method to determine which model elements have been defined by the user
-    as having applied distributed loads.'''
+    '''
+    Method to determine which model elements have been defined by the user
+    as having applied distributed loads.
+    '''
     elem_dload  = [[[0, 0], [0,0], [0,0]] for _ in range(len(self.elem_nodes))]
     for idx, elem in enumerate(self.elem_nodes):
       for dload in self.beam.dloads:
@@ -154,8 +171,10 @@ class BeamModel:
     self.elem_dload = elem_dload
 
   def get_node_elem_fef(self):
-    '''Method to calculate the fixed end forces due to distributed loads on
-    model elements.'''
+    '''
+    Method to calculate the fixed end forces due to distributed loads on
+    model elements.
+    '''
     node_elem_fef = [[0, 0 ,0] for _ in range(len(self.model_nodes))]
     # Loop over all elements
     for idx, elem in enumerate(self.elem_nodes):
@@ -185,8 +204,10 @@ class BeamModel:
     self.node_elem_fef = node_elem_fef
 
   def fill_global_dof(self):
-    '''Method to fill global dof array with the appropriate global dof number
-    and determine the total number of dof in the model.'''
+    '''
+    Method to fill global dof array with the appropriate global dof number
+    and determine the total number of dof in the model.
+    '''
     # Initialize list with n_nodes rows and 3 columns in each row
     dof_num = [[0, 0, 0] for _ in range(len(self.model_nodes))]
 
@@ -210,7 +231,9 @@ class BeamModel:
     self.n_dof = dof_count
 
   def assemble_global_stiffness(self):
-    '''Method to assemble the global stiffness matrix for the model.'''
+    '''
+    Method to assemble the global stiffness matrix for the model.
+    '''
     # Initialize numpy matrix with n_dof x n_dof dimensions
     local_stiffness_matrices = []
     S = np.zeros((self.n_dof, self.n_dof))
@@ -275,8 +298,10 @@ class BeamModel:
     self.local_stiffness_matrices = local_stiffness_matrices
 
   def get_load_vector(self):
-    '''Method to get the global load vector, including fixed end forces
-    from distributed loads on elements.'''
+    '''
+    Method to get the global load vector, including fixed end forces
+    from distributed loads on elements.
+    '''
     # Initialize an empty numpy array with n_dof x 1 dimensions for both the
     # applied concentrated loads and the fixed end forces
     P = np.zeros((self.n_dof, 1))
@@ -293,10 +318,11 @@ class BeamModel:
     self.nodal_load_vector = P
     self.fef_load_vector = Pf
 
-  def perform_analysis(self):
-    '''Method to compute the displacement vector, element force matrix, and
-    support reaction vector.'''
-    # Prepare the stiffness and load matrices.
+  def initialize_analysis(self):
+    '''
+    Method to prepare the model for analysis to be called at instantiation and 
+    when the user specifies.
+    '''
     self.get_points_of_interest()
     self.create_model_nodes_and_elems()
     self.set_support_nodes()
@@ -307,6 +333,11 @@ class BeamModel:
     self.assemble_global_stiffness()
     self.get_load_vector()
 
+  def perform_analysis(self):
+    '''
+    Method to compute the displacement vector, element force matrix, and
+    support reaction vector.
+    '''
     # Calculate the global displacement vector
     load_vector = self.nodal_load_vector - self.fef_load_vector
     self.global_displacement = np.matmul(
