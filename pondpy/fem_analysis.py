@@ -316,7 +316,7 @@ class BeamModel:
 
   def initialize_analysis(self):
     '''
-    Prepares the model for analysis to be called at instantiation and 
+    Prepares the model for analysis. To be called at instantiation and 
     when the user specifies.
     '''
     self.get_points_of_interest()

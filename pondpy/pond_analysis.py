@@ -125,9 +125,7 @@ class RoofBayModel:
         self.roof_bay = roof_bay
         self.max_node_spacing = max_node_spacing
 
-        self.create_primary_models()
-        self.create_secondary_models()
-        self. initial_impounded_water_depth()
+        self.initialize_analysis()
         
     def create_primary_models(self):
         '''
@@ -204,7 +202,7 @@ class RoofBayModel:
             'Secondary':impounded_depth_s,
         }
 
-    def get_secondary_rl(self):
+    def get_secondary_rl(self, impounded_depth):
         '''
         Calculates the rain load at each node along the length of each secondary member based on the impounded
         water depth at each node and the trib width for each member.
@@ -221,8 +219,8 @@ class RoofBayModel:
                     x_i_rl = node # inches
                     x_j_rl = member.model_nodes[i_node+1] # inches
 
-                    depth_i = self.initial_impounded_depth['Secondary'][i_member][i_node] # inches
-                    depth_j = self.initial_impounded_depth['Secondary'][i_member][i_node+1] # inches
+                    depth_i = impounded_depth['Secondary'][i_member][i_node] # inches
+                    depth_j = impounded_depth['Secondary'][i_member][i_node+1] # inches
 
                     q_rl_i = depth_i*conv_d_to_q # k/in^2
                     q_rl_j = depth_j*conv_d_to_q # k/in^2
@@ -240,3 +238,13 @@ class RoofBayModel:
             secondary_rl[i_member].append(member_rl)
 
         return secondary_rl
+    
+    def initialize_analysis(self):
+        '''
+        Prepares the model for analysis. To be called at instantiation and 
+        when the user specifies.
+        '''
+        self.create_primary_models()
+        self.create_secondary_models()
+        self.initial_impounded_water_depth()
+        self.get_secondary_rl(impounded_depth=self.initial_impounded_depth)
