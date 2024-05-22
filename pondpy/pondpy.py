@@ -33,4 +33,5 @@ secondary_framing = SecondaryFraming(framing_s)
 roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
 roof_bay_model = RoofBayModel(roof_bay)
-print(roof_bay_model.initial_impounded_depth['Primary'][1])
+x = roof_bay_model.get_secondary_rl()
+print(x[0][0][0].location)

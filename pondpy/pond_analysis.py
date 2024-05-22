@@ -4,6 +4,8 @@ from fem_analysis import (
     DistLoad,
 )
 
+conv_d_to_q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
+
 class Loading:
     def __init__(self, dead_load, rain_load, include_sw = True):
         self.dead_load = dead_load # Units: k/in^2
@@ -91,6 +93,7 @@ class RoofBay:
             secondary_dl[idx].append(DistLoad(location=(x_i_dl, x_j_dl), magnitude=((0, 0), (-(w_dl+sw), -(w_dl+sw)), (0, 0))))
 
         self.secondary_dl = secondary_dl
+        self.secondary_tribw = trib_w
 
     def get_primary_sw(self):
         '''
@@ -168,7 +171,6 @@ class RoofBayModel:
         '''
         # Load and calculate required parameters
         q_rl = self.roof_bay.loading.rain_load # Units: k/in^2
-        conv_d_to_q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
         d_impounded_i = q_rl/conv_d_to_q # Depth of impounded water at end i in inches
         roof_slope = self.roof_bay.secondary_framing.slope/12 # Roof slope in in/in
         impounded_length = d_impounded_i/roof_slope # Length of impounded water along secondary framing in inches
@@ -201,3 +203,40 @@ class RoofBayModel:
             'Primary':impounded_depth_p,
             'Secondary':impounded_depth_s,
         }
+
+    def get_secondary_rl(self):
+        '''
+        Calculates the rain load at each node along the length of each secondary member based on the impounded
+        water depth at each node and the trib width for each member.
+        '''
+        trib_w = self.roof_bay.secondary_tribw
+
+        secondary_rl = {}
+        for i_member, member in enumerate(self.secondary_models):
+            member_rl = []
+            cur_tribw = trib_w[i_member] # inches
+            # Calculate distributed rain load for each member
+            for i_node, node in enumerate(member.model_nodes[:-1]):
+                if i_node < len(member.model_nodes):
+                    x_i_rl = node # inches
+                    x_j_rl = member.model_nodes[i_node+1] # inches
+
+                    depth_i = self.initial_impounded_depth['Secondary'][i_member][i_node] # inches
+                    depth_j = self.initial_impounded_depth['Secondary'][i_member][i_node+1] # inches
+
+                    q_rl_i = depth_i*conv_d_to_q # k/in^2
+                    q_rl_j = depth_j*conv_d_to_q # k/in^2
+
+                    w_rl_i = q_rl_i*cur_tribw # k/in
+                    w_rl_j = q_rl_j*cur_tribw # k/in
+
+                    cur_rl = DistLoad(location=(x_i_rl, x_j_rl), magnitude=((0, 0), (-w_rl_i, -w_rl_j), (0, 0)))
+
+                member_rl.append(cur_rl)
+
+            if i_member not in secondary_rl.keys():
+                secondary_rl[i_member] = []
+
+            secondary_rl[i_member].append(member_rl)
+
+        return secondary_rl
