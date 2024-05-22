@@ -124,6 +124,7 @@ class RoofBayModel:
 
         self.create_primary_models()
         self.create_secondary_models()
+        self. initial_impounded_water_depth()
         
     def create_primary_models(self):
         '''
@@ -161,3 +162,42 @@ class RoofBayModel:
 
         self.secondary_models = secondary_models
 
+    def initial_impounded_water_depth(self):
+        '''
+        Calculates the initial impounded water depth at each node for each primary and secondary member.
+        '''
+        # Load and calculate required parameters
+        q_rl = self.roof_bay.loading.rain_load # Units: k/in^2
+        conv_d_to_q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
+        d_impounded_i = q_rl/conv_d_to_q # Depth of impounded water at end i in inches
+        roof_slope = self.roof_bay.secondary_framing.slope/12 # Roof slope in in/in
+        impounded_length = d_impounded_i/roof_slope # Length of impounded water along secondary framing in inches
+        bay_length = self.roof_bay.secondary_framing.secondary_members[0].length # Length of roof bay in inches
+
+        # First deal with the primary members
+        impounded_depth_p = {}
+        impounded_depth_p[0] = [d_impounded_i for _ in range(len(self.primary_models[0].model_nodes))]
+        if impounded_length <= bay_length:
+            impounded_depth_p[1] = [0.0 for _ in range(len(self.primary_models[0].model_nodes))]
+        elif impounded_length > bay_length:
+            impounded_depth_p[1] = [d_impounded_i-roof_slope*bay_length for _ in range(len(self.primary_models[0].model_nodes))]
+
+        # Next deal with the secondary members
+        impounded_depth_s = {}
+        for idx, s_model in enumerate(self.secondary_models):
+            cur_nodes = s_model.model_nodes
+            nodal_depth = []
+            for node in cur_nodes:
+                if node <= impounded_length:
+                    cur_depth = d_impounded_i - roof_slope*node
+                elif node > impounded_length:
+                    cur_depth = 0.0
+
+                nodal_depth.append(cur_depth)
+            
+            impounded_depth_s[idx] = nodal_depth
+
+        self.initial_impounded_depth = {
+            'Primary':impounded_depth_p,
+            'Secondary':impounded_depth_s,
+        }
