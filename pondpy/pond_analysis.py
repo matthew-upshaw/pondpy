@@ -39,6 +39,10 @@ class RoofBay:
         self.mirrored_left = mirrored_left
         self.mirrored_right = mirrored_right
 
+        self.get_secondary_spacing()
+        self.get_secondary_dl()
+        self.get_primary_sw()
+
     def get_secondary_spacing(self):
         '''
         Method to get the secondary member spacing, assuming all members are evenly spaced.
@@ -48,7 +52,7 @@ class RoofBay:
 
         secondary_spacing = primary_length/(n_secondary-1)
 
-        return secondary_spacing
+        self.secondary_spacing = secondary_spacing
 
     def get_secondary_dl(self):
         '''
@@ -58,7 +62,7 @@ class RoofBay:
         secondary_dl = {}
 
         # Calculate tributary width for each member
-        trib_w = [self.get_secondary_spacing() for _ in range(len(self.secondary_framing.secondary_members))]
+        trib_w = [self.secondary_spacing for _ in range(len(self.secondary_framing.secondary_members))]
 
         # Reduce tributary width for end members if roof bay is not mirrored on each side
         if not self.mirrored_left:
@@ -86,5 +90,69 @@ class RoofBay:
             # Place load into dictionary
             secondary_dl[idx].append(DistLoad(location=(x_i_dl, x_j_dl), magnitude=((0, 0), (-(w_dl+sw), -(w_dl+sw)), (0, 0))))
 
-        return secondary_dl
+        self.secondary_dl = secondary_dl
+
+    def get_primary_sw(self):
+        primary_sw = {}
+
+        for idx, member in enumerate(self.primary_framing.primary_members):
+            x_i_sw = 0
+            x_j_sw = member.length
+
+            # Calculate self-weight, if enabled
+            if self.loading.include_sw:
+                sw = member.size.properties.weight/1000/12 # Convert lb/ft to kip/in
+            else:
+                sw = 0
+            
+            # Place load into dictionary
+            if idx not in primary_sw.keys():
+                primary_sw[idx] = []
+
+            primary_sw[idx].append(DistLoad(location=(x_i_sw, x_j_sw), magnitude=((0, 0), (-sw, -sw), (0, 0))))
+
+        self.primary_sw = primary_sw
+          
+
+class RoofBayModel:
+    def __init__(self, roof_bay, max_node_spacing = 6):
+        self.roof_bay = roof_bay
+        self.max_node_spacing = max_node_spacing
+
+        self.create_primary_models()
+        self.create_secondary_models()
+        
+    def create_primary_models(self):
+        '''
+        Creates BeamModels for each primary member in the roof bay.
+        '''
+        primary_models = []
+        for idx, p_mem in enumerate(self.roof_bay.primary_framing.primary_members):
+            cur_model = BeamModel(p_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
+
+            # Retrieve self-weight from primary_sw dictionary
+            p_sw = self.roof_bay.primary_sw[idx][0]
+            # Add self-weight to the model
+            cur_model.add_beam_dload(p_sw)
+
+            primary_models.append(cur_model)
+
+        self.primary_models = primary_models
+
+    def create_secondary_models(self):
+        '''
+        Creates BeamModels for each secondary member in the roof bay.
+        '''
+        secondary_models = []
+        for idx, s_mem in enumerate(self.roof_bay.secondary_framing.secondary_members):
+            cur_model = BeamModel(s_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
+
+            # Retrieve dead load from secondary_dl dictionary
+            s_dl = self.roof_bay.secondary_dl[idx][0]
+            # Add the dead load to the model
+            cur_model.add_beam_dload(s_dl)
+
+            secondary_models.append(cur_model)
+
+        self.secondary_models = secondary_models
 

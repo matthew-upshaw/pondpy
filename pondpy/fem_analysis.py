@@ -48,10 +48,12 @@ class DistLoad:
     self.magnitude = magnitude
 
 class BeamModel:
-  def __init__(self, beam, max_node_spacing=0.5*12):
+  def __init__(self, beam, max_node_spacing=0.5*12, ini_analysis=True):
     self.beam = beam
     self.max_node_spacing = max_node_spacing
-    self.initialize_analysis()
+
+    if ini_analysis:
+      self.initialize_analysis()
 
   def get_points_of_interest(self):
     '''
@@ -389,7 +391,7 @@ class BeamModel:
     self.element_forces = elemxyM
     self.support_reactions = support_reactions
 
-  def add_beam_dload(self, dload, add_type='replace'):
+  def add_beam_dload(self, dload, add_type='add'):
     '''
     Method to add a distributed load to the Beam object referenced by the BeamModel object.
     '''

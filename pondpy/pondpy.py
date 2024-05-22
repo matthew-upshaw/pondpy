@@ -11,6 +11,7 @@ from pond_analysis import (
     PrimaryFraming,
     PrimaryMember,
     RoofBay,
+    RoofBayModel,
     SecondaryFraming,
     SecondaryMember,
 )
@@ -35,5 +36,5 @@ secondary_framing = SecondaryFraming(framing_s)
 # Define the roof bay
 roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
-secondary_dl = roof_bay.get_secondary_dl()
-print(secondary_dl[0][0].location)
+roof_bay_model = RoofBayModel(roof_bay)
+print(len(roof_bay_model.primary_models[0].model_nodes))
