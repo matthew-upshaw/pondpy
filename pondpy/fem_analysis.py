@@ -410,7 +410,7 @@ class BeamModel:
     plt.ylabel(f'Deflection (in) - Scale={scale}:1')
 
     plt.grid()
-    
+
     plt.show()
 
   def add_beam_dload(self, dload, add_type='add'):
@@ -422,6 +422,19 @@ class BeamModel:
       self.beam.dloads = dload
     elif add_type == 'add':
       self.beam.dloads.append(dload)
+
+    # Re-initialize the analysis
+    self.initialize_analysis()
+
+def add_beam_pload(self, pload, add_type='add'):
+    '''
+    Adds a point load to the Beam object referenced by the BeamModel object.
+    '''
+    # Add the point load
+    if add_type == 'replace':
+      self.beam.ploads = pload
+    elif add_type == 'add':
+      self.beam.ploads.append(pload)
 
     # Re-initialize the analysis
     self.initialize_analysis()
