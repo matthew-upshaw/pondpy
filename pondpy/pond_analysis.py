@@ -247,4 +247,4 @@ class RoofBayModel:
         self.create_primary_models()
         self.create_secondary_models()
         self.initial_impounded_water_depth()
-        self.get_secondary_rl(impounded_depth=self.initial_impounded_depth)
+        self.initial_secondary_rl = self.get_secondary_rl(impounded_depth=self.initial_impounded_depth)

@@ -33,5 +33,4 @@ secondary_framing = SecondaryFraming(framing_s)
 roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
 roof_bay_model = RoofBayModel(roof_bay)
-x = roof_bay_model.get_secondary_rl()
-print(x[0][0][0].location)
+print(roof_bay_model.initial_secondary_rl[0][0][0])
