@@ -33,8 +33,3 @@ secondary_framing = SecondaryFraming(framing_s)
 roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
 roof_bay_model = RoofBayModel(roof_bay)
-
-bm1 = roof_bay_model.primary_models[0]
-bm1.perform_analysis()
-#print(f'{bm1.elem_dload}')
-bm1.plot_deflected_shape()
