@@ -125,12 +125,15 @@ class BeamModel:
     user as supports.
     '''
     node_support = [(0, 0, 0) for _ in range(len(self.model_nodes))]
-    for idx, node in enumerate(self.model_nodes):
+    support_nodes = []
+    for i_node, node in enumerate(self.model_nodes):
       for support in self.beam.supports:
         if support[0] == node:
-          node_support[idx] = support[1]
+          node_support[i_node] = support[1]
+          support_nodes.append(i_node)
 
     self.node_support = node_support
+    self.support_nodes = support_nodes
 
   def set_pload_nodes(self):
     '''
