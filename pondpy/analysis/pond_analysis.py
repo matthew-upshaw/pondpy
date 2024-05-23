@@ -115,20 +115,40 @@ class RoofBayModel:
         self.max_node_spacing = max_node_spacing
 
         self.initialize_analysis()
+
+    def _apply_primary_loads(self):
+        '''
+        Applies the support reactions from each SecondaryMember object in the RoofBayModel object
+        to the PrimaryMember objects. SecondaryMember analysis must be performed before calling 
+        this method.
+        '''
+        s_spacing = self.roof_bay.secondary_spacing
+        for i_pmodel, p_model in enumerate(self.primary_models):
+            ploads = []
+            for i_smodel, s_model in enumerate(self.secondary_models):
+                sup_reactions = [s_model.support_reactions[node] for node in s_model.support_nodes]
+                x_load = s_spacing*i_smodel
+
+                reaction = tuple(-1*sup_reactions[i_pmodel])
+                cur_pload = [PointLoad(x_load, reaction)]
+                ploads.extend(cur_pload)
+
+                p_model.add_beam_pload(ploads, add_type='replace')
             
+                
     def _apply_secondary_loads(self, rain_load):
         '''
         Applies the dead and rain loading to each SecondaryMember object in the RoofBayModel object.
         '''
-        for idx, s_model in enumerate(self.secondary_models):
+        for i_smodel, s_model in enumerate(self.secondary_models):
             dloads = []
             # Retrieve the dead load from secondary_dl dictionary
-            s_dl = [self.roof_bay.secondary_dl[idx][0]]
+            s_dl = [self.roof_bay.secondary_dl[i_smodel][0]]
             dloads.extend(s_dl)
 
             # Retrieve the rain loads from input rain_load list
-            r_dl = rain_load[idx]
-            dloads.extend(r_dl)
+            s_rl = rain_load[i_smodel]
+            dloads.extend(s_rl)
 
             s_model.add_beam_dload(dloads, add_type='replace')
         
@@ -255,9 +275,18 @@ class RoofBayModel:
         # Handle the secondary member analysis first
         # Apply the secondary loads
         self._apply_secondary_loads(rain_load=rain_load)
+
         # Perform the secondary member analysis
         for s_model in self.secondary_models:
             s_model.perform_analysis()
+
+        # Next handle the primary member analysis
+        # Apply the secondary member reactions as point loads to the primary members
+        self._apply_primary_loads()
+
+        # Perform the primary member analysis
+        for p_model in self.primary_models:
+            p_model.perform_analysis()
 
     def initialize_analysis(self):
         '''

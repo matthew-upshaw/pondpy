@@ -273,8 +273,8 @@ class BeamModel:
         if (dload.location[0] <= self.model_nodes[elem[0]] and
             dload.location[1] >= self.model_nodes[elem[1]]):
           for idx2, _ in enumerate(elem_dload[idx]):
-            elem_dload[idx][idx2][0] = m[idx2]*self.model_nodes[elem[0]]+b[idx2]
-            elem_dload[idx][idx2][1] = m[idx2]*self.model_nodes[elem[1]]+b[idx2]
+            elem_dload[idx][idx2][0] += m[idx2]*(self.model_nodes[elem[0]]-dload.location[0])+b[idx2]
+            elem_dload[idx][idx2][1] += m[idx2]*(self.model_nodes[elem[1]]-dload.location[0])+b[idx2]
 
     self.elem_dload = elem_dload
 
@@ -410,6 +410,48 @@ class BeamModel:
 
     self.element_forces = elemxyM
     self.support_reactions = support_reactions
+
+  def plot_bmd(self):
+    '''
+    Plots the bending moment diagram of the analyzed beam.
+    '''
+    left_moment = []
+    right_moment = []
+    for elem_f in self.element_forces:
+      left_moment.append(elem_f[2])
+      right_moment.append(elem_f[5])
+    
+    mom_count1 = 0
+    mom_count2 = 0
+
+    bmd_val = np.zeros((2*len(self.model_nodes)))
+    for i_bmd in range(2*len(self.model_nodes)):
+      if i_bmd < 2*len(self.model_nodes)-2 and (i_bmd+1) % 2 != 0:
+        bmd_val[i_bmd] = -left_moment[mom_count1]
+        mom_count1 += 1
+      elif i_bmd < 2*len(self.model_nodes)-2 and (i_bmd+1) % 2 == 0:
+        bmd_val[i_bmd] = bmd_val[i_bmd-1]
+        mom_count2 += 1
+      elif i_bmd == 2*len(self.model_nodes)-2:
+        bmd_val[i_bmd] = right_moment[len(self.elem_nodes)-1]
+      elif i_bmd == 2*len(self.model_nodes)-1:
+        bmd_val[i_bmd] = bmd_val[i_bmd-1]
+
+    lval_bmd = np.zeros(2*(len(self.model_nodes)))
+    lval_bmd_count = 0
+    for i_lval_bmd in range(len(self.model_nodes)):
+      lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]
+      lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]
+      lval_bmd_count += 1
+
+    plt.plot(lval_bmd.tolist(), bmd_val.tolist())
+
+    plt.xlabel('Length (ft)')
+    plt.ylabel(f'Bending Moment (k-in)')
+
+    plt.grid()
+
+    plt.show()
 
   def plot_deflected_shape(self, scale=50):
     '''
