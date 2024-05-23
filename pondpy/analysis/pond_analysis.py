@@ -135,7 +135,6 @@ class RoofBayModel:
 
                 p_model.add_beam_pload(ploads, add_type='replace')
             
-                
     def _apply_secondary_loads(self, rain_load):
         '''
         Applies the dead and rain loading to each SecondaryMember object in the RoofBayModel object.
