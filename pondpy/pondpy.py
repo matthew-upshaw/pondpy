@@ -19,7 +19,7 @@ from analysis.pond_analysis import (
     SecondaryMember,
 )
 
-class PondPy:
+class PondPyModel:
     '''
     A class to represent a pondpy analysis object.
 
@@ -144,6 +144,6 @@ framing_s = [SecondaryMember(20*12, k_12k1, [[0,(1,1,0)],[20*12,(1,1,0)]], pload
 primary_framing = PrimaryFraming(framing_p)
 secondary_framing = SecondaryFraming(framing_s)
 
-model = PondPy(primary_framing, secondary_framing, loading)
+model = PondPyModel(primary_framing, secondary_framing, loading)
 
 pdb.set_trace()
