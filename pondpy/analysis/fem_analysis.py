@@ -38,16 +38,6 @@ class Beam:
       self.mom_inertia = size.properties.Ix
       self.area = size.properties.area
 
-class PointLoad:
-  def __init__(self, location, magnitude):
-    self.location = location
-    self.magnitude = magnitude
-
-class DistLoad:
-  def __init__(self, location, magnitude):
-    self.location = location
-    self.magnitude = magnitude
-
 class BeamModel:
   def __init__(self, beam, max_node_spacing=0.5*12, ini_analysis=True):
     self.beam = beam
@@ -56,7 +46,7 @@ class BeamModel:
     if ini_analysis:
       self.initialize_analysis()
 
-  def get_points_of_interest(self):
+  def _get_points_of_interest(self):
     '''
     Defines points of interest along the length of the beam model,
     including beam start and end points, points of load application, and
@@ -87,7 +77,7 @@ class BeamModel:
 
     self.points_of_interest = points_of_interest
 
-  def create_model_nodes_and_elems(self):
+  def _create_model_nodes_and_elems(self):
     '''
     Defines the model nodes based on the points of interest
     and maximum node spacing defined by the user.
@@ -119,7 +109,7 @@ class BeamModel:
     self.model_nodes = model_nodes
     self.elem_nodes = elem_nodes
 
-  def set_support_nodes(self):
+  def _set_support_nodes(self):
     '''
     Determines which model nodes have been defined by the
     user as supports.
@@ -135,7 +125,7 @@ class BeamModel:
     self.node_support = node_support
     self.support_nodes = support_nodes
 
-  def set_pload_nodes(self):
+  def _set_pload_nodes(self):
     '''
     Determines which model nodes have been defined by the
     user as having applied point loads.
@@ -149,7 +139,7 @@ class BeamModel:
 
     self.node_pload = node_pload
 
-  def set_dload_elems(self):
+  def _set_dload_elems(self):
     '''
     Determines which model elements have been defined by the user
     as having applied distributed loads.
@@ -170,7 +160,7 @@ class BeamModel:
 
     self.elem_dload = elem_dload
 
-  def get_node_elem_fef(self):
+  def _get_node_elem_fef(self):
     '''
     Calculates the fixed end forces due to distributed loads on
     model elements.
@@ -203,7 +193,7 @@ class BeamModel:
 
     self.node_elem_fef = node_elem_fef
 
-  def fill_global_dof(self):
+  def _fill_global_dof(self):
     '''
     Fills global dof array with the appropriate global dof number
     and determine the total number of dof in the model.
@@ -230,7 +220,7 @@ class BeamModel:
     self.dof_num = dof_num
     self.n_dof = dof_count
 
-  def assemble_global_stiffness(self):
+  def _assemble_global_stiffness(self):
     '''
     Assembles the global stiffness matrix for the model.
     '''
@@ -297,7 +287,7 @@ class BeamModel:
     self.global_stiffness = S
     self.local_stiffness_matrices = local_stiffness_matrices
 
-  def get_load_vector(self):
+  def _get_load_vector(self):
     '''
     Assembles the global load vector, including fixed end forces
     from distributed loads on elements.
@@ -323,15 +313,15 @@ class BeamModel:
     Prepares the model for analysis. To be called at instantiation and 
     when the user specifies.
     '''
-    self.get_points_of_interest()
-    self.create_model_nodes_and_elems()
-    self.set_support_nodes()
-    self.set_pload_nodes()
-    self.set_dload_elems()
-    self.get_node_elem_fef()
-    self.fill_global_dof()
-    self.assemble_global_stiffness()
-    self.get_load_vector()
+    self._get_points_of_interest()
+    self._create_model_nodes_and_elems()
+    self._set_support_nodes()
+    self._set_pload_nodes()
+    self._set_dload_elems()
+    self._get_node_elem_fef()
+    self._fill_global_dof()
+    self._assemble_global_stiffness()
+    self._get_load_vector()
 
   def perform_analysis(self):
     '''
@@ -441,3 +431,13 @@ def add_beam_pload(self, pload, add_type='add'):
 
     # Re-initialize the analysis
     self.initialize_analysis()
+
+class DistLoad:
+  def __init__(self, location, magnitude):
+    self.location = location
+    self.magnitude = magnitude
+
+class PointLoad:
+  def __init__(self, location, magnitude):
+    self.location = location
+    self.magnitude = magnitude
