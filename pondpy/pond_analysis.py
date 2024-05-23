@@ -137,7 +137,7 @@ class RoofBayModel:
             cur_model = BeamModel(p_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
 
             # Retrieve self-weight from primary_sw dictionary
-            p_sw = self.roof_bay.primary_sw[idx][0]
+            p_sw = self.roof_bay.primary_sw[idx]
             # Add self-weight to the model
             cur_model.add_beam_dload(p_sw)
 
@@ -155,7 +155,7 @@ class RoofBayModel:
             cur_model = BeamModel(s_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
 
             # Retrieve dead load from secondary_dl dictionary
-            s_dl = self.roof_bay.secondary_dl[idx][0]
+            s_dl = self.roof_bay.secondary_dl[idx]
             # Add the dead load to the model
             cur_model.add_beam_dload(s_dl)
 
@@ -171,8 +171,12 @@ class RoofBayModel:
         q_rl = self.roof_bay.loading.rain_load # Units: k/in^2
         d_impounded_i = q_rl/conv_d_to_q # Depth of impounded water at end i in inches
         roof_slope = self.roof_bay.secondary_framing.slope/12 # Roof slope in in/in
-        impounded_length = d_impounded_i/roof_slope # Length of impounded water along secondary framing in inches
         bay_length = self.roof_bay.secondary_framing.secondary_members[0].length # Length of roof bay in inches
+        if roof_slope == 0:
+            impounded_length = bay_length
+        else:
+            impounded_length = d_impounded_i/roof_slope # Length of impounded water along secondary framing in inches
+        
 
         # First deal with the primary members
         impounded_depth_p = {}
@@ -235,10 +239,37 @@ class RoofBayModel:
             if i_member not in secondary_rl.keys():
                 secondary_rl[i_member] = []
 
-            secondary_rl[i_member].append(member_rl)
+            secondary_rl[i_member].extend(member_rl)
 
         return secondary_rl
-    
+
+    def apply_secondary_loads(self, rain_load):
+        '''
+        Applies the dead and rain loading to each SecondaryMember object in the RoofBayModel object.
+        '''
+        for idx, s_model in enumerate(self.secondary_models):
+            dloads = []
+            # Retrieve the dead load from secondary_dl dictionary
+            s_dl = [self.roof_bay.secondary_dl[idx][0]]
+            dloads.extend(s_dl)
+
+            # Retrieve the rain loads from input rain_load list
+            r_dl = rain_load[idx]
+            dloads.extend(r_dl)
+
+            s_model.add_beam_dload(dloads, add_type='replace')
+
+    def analyze_roof_bay(self, rain_load):
+        '''
+        Analyzes the roof bay for the dead load and the input rain loads.
+        '''
+        # Handle the secondary member analysis first
+        # Apply the secondary loads
+        self.apply_secondary_loads(rain_load=rain_load)
+        # Perform the secondary member analysis
+        for s_model in self.secondary_models:
+            s_model.perform_analysis()
+
     def initialize_analysis(self):
         '''
         Prepares the model for analysis. To be called at instantiation and 

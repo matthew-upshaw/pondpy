@@ -421,7 +421,7 @@ class BeamModel:
     if add_type == 'replace':
       self.beam.dloads = dload
     elif add_type == 'add':
-      self.beam.dloads.append(dload)
+      self.beam.dloads.extend(dload)
 
     # Re-initialize the analysis
     self.initialize_analysis()
@@ -434,7 +434,7 @@ def add_beam_pload(self, pload, add_type='add'):
     if add_type == 'replace':
       self.beam.ploads = pload
     elif add_type == 'add':
-      self.beam.ploads.append(pload)
+      self.beam.ploads.extend(pload)
 
     # Re-initialize the analysis
     self.initialize_analysis()

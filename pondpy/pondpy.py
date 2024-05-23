@@ -1,3 +1,5 @@
+import pdb
+
 from joistpy import sji
 from steelpy import aisc
 
@@ -33,3 +35,4 @@ secondary_framing = SecondaryFraming(framing_s)
 roof_bay = RoofBay(primary_framing, secondary_framing, loading)
 
 roof_bay_model = RoofBayModel(roof_bay)
+pdb.set_trace()
