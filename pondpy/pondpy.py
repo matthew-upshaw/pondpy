@@ -3,12 +3,12 @@ import pdb
 from joistpy import sji
 from steelpy import aisc
 
-from fem_analysis import (
+from analysis.fem_analysis import (
     SteelBeamSize,
     SteelJoistSize,
 )
 
-from pond_analysis import (
+from analysis.pond_analysis import (
     Loading,
     PrimaryFraming,
     PrimaryMember,

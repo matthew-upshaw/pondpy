@@ -1,4 +1,4 @@
-from fem_analysis import (
+from .fem_analysis import (
     Beam,
     BeamModel,
     DistLoad,
