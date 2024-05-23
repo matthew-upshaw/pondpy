@@ -24,8 +24,8 @@ k_12k1 = SteelJoistSize('12K1', sji.K_Series.K_12K1)
 loading = Loading(20/1000/144, 32.6/1000/144, include_sw=True)
 
 # Define the primary and secondary framing
-framing_p = [PrimaryMember(20*12, w16x26, [[0,(1,1,1)],[20*12,(1,1,1)]], ploads=[], dloads=[]) for _ in range(2)]
-framing_s = [SecondaryMember(20*12, k_12k1, [[0,(1,1,1)],[20*12,(1,1,1)]], ploads=[], dloads=[]) for _ in range(5)]
+framing_p = [PrimaryMember(20*12, w16x26, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(2)]
+framing_s = [SecondaryMember(20*12, k_12k1, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(5)]
 primary_framing = PrimaryFraming(framing_p)
 secondary_framing = SecondaryFraming(framing_s)
 
