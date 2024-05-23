@@ -8,19 +8,69 @@ from .fem_analysis import (
 conv_d_to_q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
 
 class Loading:
+    '''
+    A class to represent the loading criteria for a roof bay.
+
+    ...
+
+    Attributes
+    ----------
+    dead_load : float
+        magnitude of the dead load on the roof in k/in^2
+    rain_load : float
+        magnitude of the rain load on the roof in k/in^2
+    include_sw : bool
+        indicates whether to conside member self-weight in the analysis
+    '''
     def __init__(self, dead_load, rain_load, include_sw = True):
+        '''
+        Constructs all the necessary attributes for the loading object.
+
+        Parameters
+        ----------
+        dead_load : float
+            magnitude of the dead load on the roof in k/in^2
+        rain_load : float
+            magnitude of the rain load on the roof in k/in^2
+        include_sw : bool, optional
+            indicates whether to conside member self-weight in the analysis
+        '''
         self.dead_load = dead_load # Units: k/in^2
         self.rain_load = rain_load # Units: k/in^2
         self.include_sw = include_sw
 
 class PrimaryMember(Beam):
+    '''
+    A class representing a primary member in the roof bay.
+    '''
     pass
 
 class PrimaryFraming:
+    '''
+    A class representing the primary members in the framing system in the roof bay.
+
+    ...
+
+    Attributes
+    ----------
+    primary_members : list
+        list of all primary members in the framing system
+    '''
     def __init__(self, primary_members):
+        '''
+        Constructs all the necessary attributes for the primary framing object.
+
+        Parameters
+        ----------
+        primary_members : list
+            list of all primary members in the primary framing system
+        '''
         self.primary_members = primary_members
 
     def __str__(self):
+        '''
+        Prints the size of each primary framing member in the framing system.
+        '''
         return f'Primary framing members: {[member.size.name for member in self.primary_members]}'
 
 class RoofBay:
@@ -298,13 +348,41 @@ class RoofBayModel:
         self.initial_secondary_rl = self._get_secondary_rl(impounded_depth=self.initial_impounded_depth)
 
 class SecondaryMember(Beam):
+    '''
+    A class representing a secondary member in the roof bay.
+    '''
     pass
 
 class SecondaryFraming:
+    '''
+    A class representing the secondary members in the framing system in the roof bay.
+
+    ...
+
+    Attributes
+    ----------
+    secondary_members : list
+        list of all primary members in the framing system
+    slope : float
+        slope of the roof bay in in/ft
+    '''
     def __init__(self, secondary_members, slope=0.25):
+        '''
+        Constructs all the necessary attributes for the secondary framing object.
+
+        Parameters
+        ----------
+        secondary_members : list
+            list of all primary members in the framing system
+        slope : float, optional
+            slope of the roof bay in in/ft
+        '''
         self.secondary_members = secondary_members
         self.slope = slope
 
     def __str__(self):
+        '''
+        Prints the size of each primary framing member in the framing system.
+        '''
         return f'Secondary framing members: {[member.size.name for member in self.secondary_members]}'
     
