@@ -232,6 +232,14 @@ class BeamModel:
     def _assemble_global_stiffness(self):
         '''
         Assembles the global stiffness matrix for the model.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Initialize numpy matrix with n_dof x n_dof dimensions
         local_stiffness_matrices = []
@@ -300,6 +308,14 @@ class BeamModel:
         '''
         Defines the model nodes based on the points of interest
         and maximum node spacing defined by the user.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         model_segments = []
         for idx, poi in enumerate(self.points_of_interest[:-1]):
@@ -332,6 +348,14 @@ class BeamModel:
         '''
         Fills global dof array with the appropriate global dof number
         and determine the total number of dof in the model.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Initialize list with n_nodes rows and 3 columns in each row
         dof_num = [[0, 0, 0] for _ in range(len(self.model_nodes))]
@@ -359,6 +383,14 @@ class BeamModel:
         '''
         Assembles the global load vector, including fixed end forces
         from distributed loads on elements.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Initialize an empty numpy array with n_dof x 1 dimensions for both the
         # applied concentrated loads and the fixed end forces
@@ -380,6 +412,14 @@ class BeamModel:
         '''
         Calculates the fixed end forces due to distributed loads on
         model elements.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         elem_loads = [[0, 0, 0, 0, 0, 0] for _ in range(len(self.elem_nodes))]
         node_elem_fef = [[0, 0 ,0] for _ in range(len(self.model_nodes))]
@@ -421,6 +461,14 @@ class BeamModel:
         Defines points of interest along the length of the beam model,
         including beam start and end points, points of load application, and
         support points.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         points_of_interest = []
 
@@ -451,6 +499,14 @@ class BeamModel:
         '''
         Determines which model elements have been defined by the user
         as having applied distributed loads.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         elem_dload    = [[[0, 0], [0,0], [0,0]] for _ in range(len(self.elem_nodes))]
         for idx, elem in enumerate(self.elem_nodes):
@@ -472,6 +528,14 @@ class BeamModel:
         '''
         Determines which model nodes have been defined by the
         user as having applied point loads.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         node_pload = [[0, 0, 0] for _ in range(len(self.model_nodes))]
         for idx, node in enumerate(self.model_nodes):
@@ -549,6 +613,14 @@ class BeamModel:
     def initialize_analysis(self):
         '''
         Prepares the model for analysis. To be called at instantiation and when the user specifies.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         self._get_points_of_interest()
         self._create_model_nodes_and_elems()
