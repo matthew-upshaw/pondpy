@@ -418,8 +418,8 @@ class BeamModel:
     left_moment = []
     right_moment = []
     for elem_f in self.element_forces:
-      left_moment.append(elem_f[2])
-      right_moment.append(elem_f[5])
+      left_moment.append(elem_f[2]/12)
+      right_moment.append(elem_f[5]/12)
     
     mom_count1 = 0
     mom_count2 = 0
@@ -440,20 +440,20 @@ class BeamModel:
     lval_bmd = np.zeros(2*(len(self.model_nodes)))
     lval_bmd_count = 0
     for i_lval_bmd in range(len(self.model_nodes)):
-      lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]
-      lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]
+      lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]/12
+      lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/12
       lval_bmd_count += 1
 
     plt.plot(lval_bmd.tolist(), bmd_val.tolist())
 
     plt.xlabel('Length (ft)')
-    plt.ylabel(f'Bending Moment (k-in)')
+    plt.ylabel(f'Bending Moment (k-ft)')
 
     plt.grid()
 
-    plt.show()
+    return plt
 
-  def plot_deflected_shape(self, scale=50):
+  def plot_deflected_shape(self, scale=1):
     '''
     Plots the deflected shape of the analyzed beam.
     '''
@@ -472,7 +472,7 @@ class BeamModel:
 
     plt.grid()
 
-    plt.show()
+    return plt
 
 class DistLoad:
   def __init__(self, location, magnitude):

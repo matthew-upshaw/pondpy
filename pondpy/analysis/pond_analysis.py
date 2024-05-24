@@ -74,7 +74,49 @@ class PrimaryFraming:
         return f'Primary framing members: {[member.size.name for member in self.primary_members]}'
 
 class RoofBay:
+    '''
+    A model representing the roof bay to be analyzed.
+
+    ...
+
+    Attributes
+    ----------
+    loading : loading
+        loading object representing the loading criteria for the roof bay
+    mirrored_left : bool
+        indicates whether the roof bay is mirrored on the left
+    mirrored_right : bool
+        indicates whether the roof bay is mirrored on the right
+    primary_framing : primary framing
+        primary framing object for the roof bay
+    primary_sw : dict
+        dictionary containing distload objects for each primary member self-weight
+    secondary_dl : dict
+        dictionary containing distload objects for each secondary member dead load, including self-weight
+    secondary_framing : secondary framing
+        secondary framing object for the roof bay
+    secondary_spacing : float
+        spacing between secondary members along the length of the primary members
+    secondary_tribw : list
+        list containing tributary width for each secondary framing member
+    '''
     def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False):
+        '''
+        Constructs all the necessary attributes for the roof bay object.
+
+        Parameters
+        ----------
+        loading : loading
+            loading object representing the loading criteria for the roof bay
+        mirrored_left : bool, optional
+            indicates whether the roof bay is mirrored on the left
+        mirrored_right : bool, optional
+            indicates whether the roof bay is mirrored on the right
+        primary_framing : primary framing
+            primary framing object for the roof bay
+        secondary_framing : secondary framing
+            secondary framing object for the roof bay
+        '''
         self.primary_framing = primary_framing
         self.secondary_framing = secondary_framing
         self.loading = loading

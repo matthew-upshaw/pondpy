@@ -48,10 +48,6 @@ class PondPyModel:
 
     Methods
     -------
-    _calculate_impounded_weight(impounded_depth)
-        Calculates the weight of the impounded water on the roof bay.
-    _create_roof_bay_model():
-        Creates the roof bay model to be used in the iterative analysis.
     '''
     def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.01, max_iter=20):
         '''
