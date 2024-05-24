@@ -45,7 +45,9 @@ class PondPyModel:
         primary framing object representing the primary framing for the roof bay
     secondary_framing : secondary framing object
         secondsry framing object representing the secondary framing for the roof bay
-    stop_criterion : float
+    show_results : bool
+        indicates whether or not to print the results to the console
+stop_criterion : float
         criterion to stop the iterative analysis
 
     Methods
@@ -53,7 +55,7 @@ class PondPyModel:
     perform_analysis():
         Performs the iterative analysis of the PondPy object.
     '''
-    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.0001, max_iter=50):
+    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.0001, max_iter=50, show_results=True):
         '''
         Constructs the required input attributes for the PondPy object.
 
@@ -75,6 +77,8 @@ class PondPyModel:
             list of PrimaryFraming objects representing the primary framing for the roof bay
         secondary_framing : list
             list of SecondaryFraming objects representing the secondary framing for the roof bay
+        show_results : bool, optional
+            indicates whether or not to print the results to the console
         stop_criterion : float, optional
             criterion to stop the iterative analysis
         '''
@@ -84,6 +88,7 @@ class PondPyModel:
         self.mirrored_right = mirrored_right
         self.primary_framing = primary_framing
         self.secondary_framing = secondary_framing
+        self.show_results = show_results
         self.stop_criterion = stop_criterion
 
         self._create_roof_bay_model()
@@ -257,20 +262,27 @@ class PondPyModel:
         '''
         iteration = 0
         impounded_weight = []
+        out_str = 'Iteration\t|\tWater Weight (k)\t|\tDifference\n'
         start = time.time()
         while True:
             rain_load = self.roof_bay_model._get_secondary_rl(self.impounded_depth)
             self.roof_bay_model.analyze_roof_bay(rain_load=rain_load)
-            impounded_weight.append(self._calculate_impounded_weight(self.impounded_depth))
+            cur_impounded_weight = self._calculate_impounded_weight(self.impounded_depth)
+            impounded_weight.append(cur_impounded_weight)
 
             if iteration > 0:
                 diff = (impounded_weight[iteration] - impounded_weight[iteration-1])/impounded_weight[iteration-1]
+                out_str += f'{iteration}\t\t|\t{round(cur_impounded_weight,2)}\t\t\t|\t{round(diff,5)}\n'
             else:
                 diff = 1
+                out_str += f'{iteration}\t\t|\t{round(cur_impounded_weight,2)}\t\t\t|\t----\n'
 
             if diff <= self.stop_criterion or iteration >= self.max_iter:
                 end = time.time()
                 time_elapsed = end - start
+                out_str += f'Analysis finished in {round(time_elapsed, 2)} s.'
+                if self.show_results:
+                    print(out_str)
                 return impounded_weight, iteration, time_elapsed
             
             self.impounded_depth = self._calculate_next_impounded_depth()
@@ -291,5 +303,3 @@ secondary_framing = SecondaryFraming(framing_s)
 
 model = PondPyModel(primary_framing, secondary_framing, loading)
 x = model.perform_analysis()
-
-pdb.set_trace()
