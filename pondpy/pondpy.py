@@ -2,7 +2,6 @@ from joistpy import sji
 from scipy import integrate
 from steelpy import aisc
 import time
-import pdb
 
 from analysis.fem_analysis import (
     SteelBeamSize,
@@ -298,21 +297,3 @@ class PondPyModel:
             
             self.impounded_depth = self._calculate_next_impounded_depth()
             iteration += 1
-
-# Define sizes for primary and secondary members
-w16x26 = SteelBeamSize('W16X26', aisc.W_shapes.W16X26)
-k_14k1 = SteelJoistSize('14K1', sji.K_Series.K_14K1)
-
-# Define loading for the roof bay
-loading = Loading(20/1000/144, 22/1000/144, include_sw=True)
-
-# Define the primary and secondary framing
-framing_p = [PrimaryMember(20*12, w16x26, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(2)]
-framing_s = [SecondaryMember(20*12, k_14k1, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(5)]
-primary_framing = PrimaryFraming(framing_p)
-secondary_framing = SecondaryFraming(framing_s)
-
-model = PondPyModel(primary_framing, secondary_framing, loading)
-x = model.perform_analysis()
-
-pdb.set_trace()
