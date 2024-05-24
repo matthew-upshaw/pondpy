@@ -291,7 +291,7 @@ class RoofBayModel:
         '''
         primary_models = []
         for idx, p_mem in enumerate(self.roof_bay.primary_framing.primary_members):
-            cur_model = BeamModel(p_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
+            cur_model = BeamModel(p_mem, max_node_spacing=self.max_node_spacing, ini_analysis=True)
 
             # Retrieve self-weight from primary_sw dictionary
             p_sw = self.roof_bay.primary_sw[idx]
@@ -309,7 +309,7 @@ class RoofBayModel:
         '''
         secondary_models = []
         for idx, s_mem in enumerate(self.roof_bay.secondary_framing.secondary_members):
-            cur_model = BeamModel(s_mem, max_node_spacing=self.max_node_spacing, ini_analysis=False)
+            cur_model = BeamModel(s_mem, max_node_spacing=self.max_node_spacing, ini_analysis=True)
 
             # Retrieve dead load from secondary_dl dictionary
             s_dl = self.roof_bay.secondary_dl[idx]

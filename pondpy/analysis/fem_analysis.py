@@ -221,11 +221,11 @@ class BeamModel:
         '''
         self.beam = beam
         self.max_node_spacing = max_node_spacing
-        self.element_forces = None
-        self.support_reactions = None
 
         if ini_analysis:
             self.initialize_analysis()
+            self.element_forces = np.zeros((len(self.elem_nodes), 6))
+            self.support_reactions = np.zeros((len(self.model_nodes), 3))
 
     def _assemble_global_stiffness(self):
         '''
@@ -719,7 +719,7 @@ class BeamModel:
         for elem_f in self.element_forces:
             left_shear.append(elem_f[1]/12)
             right_shear.append(elem_f[4]/12)
-                    
+
         shear_count1 = 0
         shear_count2 = 0
 
