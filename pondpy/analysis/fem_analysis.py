@@ -152,11 +152,13 @@ class BeamModel:
         list of lists representing the degrees of freedom for each node in the model
     elem_dload : list
         list of lists representing the distributed load acting on each element in the model
+    elem_loads : list
+        list of lists representing the fixed end forces in each direction at each end of each element
+    elem_nodes : list
+        list of lists representing the node number at each end of each element in the model
     element_forces : numpy array
         numpy array representing the forces at each end of each element
         * analysis must be performed to access this attribute
-    elem_nodes : list
-        list of lists representing the node number at each end of each element in the model
     fef_load_vector : numpy array
         numpy array represengting the fixed end forces calculated from the dist loads at each node in the model
     global_stiffness_matrix : numpy array
@@ -174,7 +176,7 @@ class BeamModel:
     nodal_load_vector : numpy array
         numpy array containing the applied nodal loads at each node in the model
     node_elem_fef : list
-        list of lists representing the fixed end forces at each node for each element in the model
+        list of lists representing the fixed end forces at each node in the model
     node_pload : list
         list of lists representing the point loads at each node in the model
     node_support : list
@@ -201,6 +203,8 @@ class BeamModel:
         Plots the bending moment diagram of the analyzed beam.
     plot_deflected_shape():
         Plots the deflected shape of the analyzed beam.
+    plot_sfd():
+        Plots the shear force diagram of the analyzed beam.
     '''
     def __init__(self, beam, max_node_spacing=6, ini_analysis=True):
         '''
@@ -375,12 +379,13 @@ class BeamModel:
         Calculates the fixed end forces due to distributed loads on
         model elements.
         '''
+        elem_loads = [[0, 0, 0, 0, 0, 0] for _ in range(len(self.elem_nodes))]
         node_elem_fef = [[0, 0 ,0] for _ in range(len(self.model_nodes))]
         # Loop over all elements
-        for idx, elem in enumerate(self.elem_nodes):
+        for i_elem, elem in enumerate(self.elem_nodes):
             # Calculate fixed end forces for y-distributed loads
-            w1 = self.elem_dload[idx][1][0]
-            w2 = self.elem_dload[idx][1][1]
+            w1 = self.elem_dload[i_elem][1][0]
+            w2 = self.elem_dload[i_elem][1][1]
             L = self.model_nodes[elem[1]] - self.model_nodes[elem[0]]
             if w1 != 0 and w2 != 0:
                 # Calculate fixed end forces if w1 >= w2
@@ -401,7 +406,13 @@ class BeamModel:
                 node_elem_fef[elem[1]][1] += v_react_j
                 node_elem_fef[elem[1]][2] += m_react_j
 
+                elem_loads[i_elem][1] += v_react_i
+                elem_loads[i_elem][2] += m_react_i
+                elem_loads[i_elem][4] += v_react_j
+                elem_loads[i_elem][5] += m_react_j
+
         self.node_elem_fef = node_elem_fef
+        self.elem_loads = elem_loads
 
     def _get_points_of_interest(self):
         '''
@@ -576,7 +587,7 @@ class BeamModel:
                 for i_dof in range(3):
                     l_dof += 1
                     # Extract local element loads
-                    local_Pf[l_dof] = self.node_elem_fef[node_num][i_dof]
+                    local_Pf[l_dof] = self.elem_loads[i_elem][l_dof]
 
                     # Extract local deformations
                     G_dof = self.dof_num[node_num][i_dof]
@@ -685,6 +696,55 @@ class BeamModel:
 
         plt.xlabel('Length (ft)')
         plt.ylabel(f'Deflection (in) - Scale={scale}:1')
+
+        plt.grid()
+
+        return plt
+
+    def plot_sfd(self):
+        '''
+        Plots the shear force diagram of the analyzed beam.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        plt : pyplot object
+            pyplot object representing the shear force diagram for the analyzed model
+        '''
+        left_shear = []
+        right_shear = []
+        for elem_f in self.element_forces:
+            left_shear.append(elem_f[1]/12)
+            right_shear.append(elem_f[4]/12)
+                    
+        shear_count1 = 0
+        shear_count2 = 0
+
+        sfd_val = np.zeros(2*len(self.model_nodes))
+        for i_sfd in range(1, len(self.model_nodes)):
+            if i_sfd < 2*len(self.model_nodes)-1:
+                #print(shear_count1, shear_count2)
+                sfd_val[i_sfd+shear_count2] = -left_shear[shear_count1]
+                sfd_val[i_sfd+shear_count2+1] = right_shear[shear_count1]
+                shear_count1 += 1
+                shear_count2 += 1
+            elif i_sfd == 2*len(self.model_nodes)-1:
+                sfd_val[i_sfd] = 0
+
+        lval_sfd = np.zeros(2*(len(self.model_nodes)))
+        lval_sfd_count = 0
+        for i_lval_sfd in range(len(self.model_nodes)):
+            lval_sfd[i_lval_sfd+lval_sfd_count] = self.model_nodes[i_lval_sfd]/12
+            lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/12
+            lval_sfd_count += 1
+
+        plt.plot(lval_sfd.tolist(), sfd_val.tolist())
+
+        plt.xlabel('Length (ft)')
+        plt.ylabel(f'Shear Force (k)')
 
         plt.grid()
 

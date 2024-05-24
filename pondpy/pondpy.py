@@ -143,5 +143,7 @@ primary_framing = PrimaryFraming(framing_p)
 secondary_framing = SecondaryFraming(framing_s)
 
 model = PondPyModel(primary_framing, secondary_framing, loading)
+model.roof_bay_model.secondary_models[0].perform_analysis()
+plt = model.roof_bay_model.secondary_models[0].plot_sfd()
 
 pdb.set_trace()
