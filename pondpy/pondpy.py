@@ -47,7 +47,7 @@ class PondPyModel:
         secondsry framing object representing the secondary framing for the roof bay
     show_results : bool
         indicates whether or not to print the results to the console
-stop_criterion : float
+    stop_criterion : float
         criterion to stop the iterative analysis
 
     Methods
