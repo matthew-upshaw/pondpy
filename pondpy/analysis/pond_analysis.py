@@ -130,6 +130,14 @@ class RoofBay:
     def _get_primary_sw(self):
         '''
         Calculates the self-weight (if enabled) of each primary member.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         primary_sw = {}
 
@@ -154,6 +162,14 @@ class RoofBay:
     def _get_secondary_dl(self):
         '''
         Calculates the dead load (including the member self-weight, if enabled) acting on each secondary framing member.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Initialize dictionary to hold load values
         secondary_dl = {}
@@ -193,6 +209,14 @@ class RoofBay:
     def _get_secondary_spacing(self):
         '''
         Calculates the secondary member spacing, assuming all members are evenly spaced.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         primary_length = self.primary_framing.primary_members[0].length
         n_secondary = len(self.secondary_framing.secondary_members)
@@ -288,6 +312,14 @@ class RoofBayModel:
         '''
         Creates BeamModels for each primary member in the roof bay, adds the primary member self-weight (if enabled)
         to the PrimaryMember object's dloads attribute, and initializes the BeamModels for analysis.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         primary_models = []
         for idx, p_mem in enumerate(self.roof_bay.primary_framing.primary_members):
@@ -306,6 +338,14 @@ class RoofBayModel:
         '''
         Creates BeamModels for each secondary member in the roof bay, adds the secondary member dead load to the
         SecondaryMember object's dloads attribute, and initializes the BeamModels for analysis.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         secondary_models = []
         for idx, s_mem in enumerate(self.roof_bay.secondary_framing.secondary_members):
@@ -329,6 +369,10 @@ class RoofBayModel:
         ----------
         impounded_depth : dict
             dictionary containing impounded water depth in inches for each primary and secondary member
+
+        Returns
+        -------
+        None
         '''
         trib_w = self.roof_bay.secondary_tribw
 
@@ -365,6 +409,14 @@ class RoofBayModel:
     def _initial_impounded_water_depth(self):
         '''
         Calculates the initial impounded water depth at each node for each primary and secondary member.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Load and calculate required parameters
         q_rl = self.roof_bay.loading.rain_load # Units: k/in^2
@@ -438,6 +490,14 @@ class RoofBayModel:
         '''
         Prepares the model for analysis. To be called at instantiation and 
         when the user specifies.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         self._create_primary_models()
         self._create_secondary_models()

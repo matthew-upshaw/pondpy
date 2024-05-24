@@ -635,6 +635,14 @@ class BeamModel:
     def perform_analysis(self):
         '''
         Computes the displacement vector, element force matrix, and support reaction vector.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
         '''
         # Calculate the global displacement vector
         load_vector = self.nodal_load_vector - self.fef_load_vector
