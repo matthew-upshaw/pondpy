@@ -253,12 +253,16 @@ stop_criterion : float
 
         Returns
         -------
-        impounded_weight : list
-            list of impounded weight for each iteration
-        iterations : int
-            number of iterations run
-        time_elapsed : float
-            amount of time the analysis took to run in seconds
+        output : dict
+            dictionary of output variables
+            Keys
+            ----
+            Iterations --> iterations : int
+                number of iterations run
+            Time --> time_elapsed : float
+                amount of time the analysis took to run in seconds
+            Weight --> impounded_weight : list
+                list of impounded weight for each iteration
         '''
         iteration = 0
         impounded_weight = []
@@ -283,7 +287,14 @@ stop_criterion : float
                 out_str += f'Analysis finished in {round(time_elapsed, 2)} s.'
                 if self.show_results:
                     print(out_str)
-                return impounded_weight, iteration, time_elapsed
+
+                output = {
+                    'Weight':impounded_weight,
+                    'Iterations':iteration,
+                    'Time':time_elapsed,
+                }
+
+                return output
             
             self.impounded_depth = self._calculate_next_impounded_depth()
             iteration += 1
@@ -303,3 +314,5 @@ secondary_framing = SecondaryFraming(framing_s)
 
 model = PondPyModel(primary_framing, secondary_framing, loading)
 x = model.perform_analysis()
+
+pdb.set_trace()

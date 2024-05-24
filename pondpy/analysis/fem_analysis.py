@@ -742,7 +742,8 @@ class BeamModel:
             lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]/12
             lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/12
             lval_bmd_count += 1
-
+        
+        plt.figure()
         plt.plot(lval_bmd.tolist(), bmd_val.tolist())
 
         plt.xlabel('Length (ft)')
@@ -774,6 +775,7 @@ class BeamModel:
             else:
                 y_disp.append(0.0)
         
+        plt.figure()
         plt.plot([x/12 for x in self.model_nodes], y_disp)
 
         plt.xlabel('Length (ft)')
@@ -823,6 +825,7 @@ class BeamModel:
             lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/12
             lval_sfd_count += 1
 
+        plt.figure()
         plt.plot(lval_sfd.tolist(), sfd_val.tolist())
 
         plt.xlabel('Length (ft)')
