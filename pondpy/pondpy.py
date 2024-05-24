@@ -27,7 +27,7 @@ class PondPyModel:
 
     Attributes
     ----------
-    loading : loading
+    loading : loading object
         Loading object representing the loading criteria for the roof bay
     max_iter : int
         maximum number of iterations for the iterative analysis
@@ -35,14 +35,14 @@ class PondPyModel:
         indicates whether the roof bay is mirrored on the left
     mirrored_right : bool
         indicates whether the roof bay is mirrored on the right
-    roof_bay : roofbay
+    roof_bay : roof bay object
         roof bay model to used to create the roof bay model
-    roof_bay_model : roofbaymodel
+    roof_bay_model : roof bay model object
         roof bay model object to be used for the iterative analysis
-    primary_framing : list
-        list of PrimaryFraming objects representing the primary framing for the roof bay
-    secondary_framing : list
-        list of SecondaryFraming objects representing the secondary framing for the roof bay
+    primary_framing : primary framing object
+        primary framing object representing the primary framing for the roof bay
+    secondary_framing : secondary framing object
+        secondsry framing object representing the secondary framing for the roof bay
     stop_criterion : float
         criterion to stop the iterative analysis
 
