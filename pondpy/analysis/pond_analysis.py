@@ -217,7 +217,7 @@ class RoofBayModel:
         list of beam model objects for the primary framing members
     roof_bay : roof bay
         roof bay object
-    secondary models : list
+    secondary_models : list
         list of beam model objects for the secondary framing members
 
     Methods

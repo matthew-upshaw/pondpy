@@ -161,6 +161,8 @@ class BeamModel:
         * analysis must be performed to access this attribute
     fef_load_vector : numpy array
         numpy array represengting the fixed end forces calculated from the dist loads at each node in the model
+    global_displacement : numpy array
+        numpy array representing the global displacement at each global degree of freedom
     global_stiffness_matrix : numpy array
         numpy array representing the global stiffness matrix for the model
     ini_analysis : bool
@@ -686,9 +688,9 @@ class BeamModel:
         '''
         y_disp = []
         for i_node in range(len(self.model_nodes)):
-            G_dof = self.dof_num[i_node][0]
+            G_dof = self.dof_num[i_node][1]
             if G_dof != 0:
-                y_disp.append(self.global_displacement[G_dof][0]*scale)
+                y_disp.append(self.global_displacement[G_dof-1][0]*scale)
             else:
                 y_disp.append(0.0)
         

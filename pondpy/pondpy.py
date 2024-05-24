@@ -28,6 +28,8 @@ class PondPyModel:
 
     Attributes
     ----------
+    impounded_depth : dict
+        dictionary containing impounded water depth at model nodes for both primary and secondary members
     loading : loading object
         Loading object representing the loading criteria for the roof bay
     max_iter : int
@@ -49,8 +51,10 @@ class PondPyModel:
 
     Methods
     -------
+    perform_analysis():
+        Performs the iterative analysis of the PondPy object.
     '''
-    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.01, max_iter=20):
+    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.0001, max_iter=50):
         '''
         Constructs the required input attributes for the PondPy object.
 
@@ -83,7 +87,8 @@ class PondPyModel:
         self.secondary_framing = secondary_framing
         self.stop_criterion = stop_criterion
 
-        self._create_roof_bay_model()  
+        self._create_roof_bay_model()
+        self.impounded_depth = self.roof_bay_model.initial_impounded_depth
 
     def _calculate_impounded_weight(self, impounded_depth):
         '''
@@ -114,6 +119,110 @@ class PondPyModel:
         impounded_weight = ((impounded_volume/(12**3))*62.4)/1000
 
         return impounded_weight
+    
+    def _calculate_next_impounded_depth(self):
+        '''
+        Calculates the impounded water depth at model nodes for both primary and secondary members for the next iteration
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        impounded_depth : dict
+            dictionary containing impounded water depth at model nodes for both primary and secondary members
+        '''
+        # First find the deflection at each end of each secondary member
+        end_deflections = []
+        for i_smodel, _ in enumerate(self.roof_bay_model.secondary_models):
+            cur_deflections = []
+            for p_model in self.roof_bay_model.primary_models:
+                node = p_model.model_nodes.index(self.roof_bay_model.roof_bay.secondary_spacing*i_smodel)
+                g_dof = p_model.dof_num[node][1]
+                if g_dof != 0:
+                    defl = p_model.global_displacement[g_dof-1][0]
+                elif g_dof == 0:
+                    defl = 0.0
+                
+                cur_deflections.append(defl)
+
+            end_deflections.append(cur_deflections)
+
+        # Next calculate the height of node j relative to node i for each secondary member, including deflection
+        # Then store the straight-line slope for each member
+        ini_slope = self.roof_bay.secondary_framing.slope/12
+        defl_slope = []
+        for i_smodel, s_model in enumerate(self.roof_bay_model.secondary_models):
+            height_i = end_deflections[i_smodel][0]
+            height_j = s_model.beam.length*ini_slope + end_deflections[i_smodel][1]
+
+            rel_h = height_j - height_i
+
+            defl_slope.append(rel_h/s_model.beam.length) # Store the straight-line slope in in/in
+
+        # Next calculate the length of ponding for each secondary member
+        ponding_length = []
+        ponding_depth_i = []
+        for i_smodel in range(len(defl_slope)):
+            ini_depth_i = self.roof_bay_model.initial_impounded_depth['Secondary'][i_smodel][0]
+            depth_i = ini_depth_i - end_deflections[i_smodel][0]
+
+            ponding_length.append(depth_i/defl_slope[i_smodel])
+            ponding_depth_i.append(depth_i)
+
+        # Next determine the depth of water considering the straight-line depth and deflection
+        # at each node for each secondary member.
+        impounded_depth_s = {}
+        for i_smodel, s_model in enumerate(self.roof_bay_model.secondary_models):
+            cur_nodes = s_model.model_nodes
+            cur_disp = []
+            for i_node in range(len(s_model.model_nodes)):
+                G_dof = s_model.dof_num[i_node][1]
+                if G_dof != 0:
+                    cur_disp.append(s_model.global_displacement[G_dof-1][0])
+                else:
+                    cur_disp.append(0.0)
+
+            nodal_depth = []
+            for i_node, node in enumerate(cur_nodes):
+                if node <= ponding_length[i_smodel]:
+                    cur_depth = (ponding_depth_i[i_smodel] - defl_slope[i_smodel]*node) - cur_disp[i_node]
+                elif node > ponding_length[i_smodel]:
+                    cur_depth = 0.0
+
+                nodal_depth.append(cur_depth)
+
+            impounded_depth_s[i_smodel] = nodal_depth
+
+        # Next determine the depth of water considering the straight-line depth and deflection
+        # at each node for each primary member.
+        # Note: Impounded depth for the primary members is not required for analysis. All rain
+        # loads are assumed to be transferred to the primary members by the secondary members.
+        impounded_depth_p = {}
+        for i_pmodel, p_model in enumerate(self.roof_bay_model.primary_models):
+            cur_disp = []
+            for i_node in range(len(p_model.model_nodes)):
+                G_dof = p_model.dof_num[i_node][1]
+                if G_dof != 0:
+                    cur_disp.append(p_model.global_displacement[G_dof-1][0])
+                else:
+                    cur_disp.append(0.0)
+
+            nodal_depth = []
+            if i_pmodel == 0:
+                for i_node, node in enumerate(p_model.model_nodes):
+                    cur_depth = self.roof_bay_model.initial_impounded_depth['Primary'][i_pmodel][i_node] - cur_disp[i_node]
+                    nodal_depth.append(cur_depth)
+                        
+            impounded_depth_p[i_pmodel] = nodal_depth
+
+        impounded_depth = {
+            'Primary':impounded_depth_p,
+            'Secondary':impounded_depth_s,
+        }           
+
+        return impounded_depth
 
     def _create_roof_bay_model(self):
         '''
@@ -130,21 +239,60 @@ class PondPyModel:
         self.roof_bay = RoofBay(self.primary_framing, self.secondary_framing, self.loading, self.mirrored_left, self.mirrored_right)
         self.roof_bay_model = RoofBayModel(self.roof_bay)
 
+    def perform_analysis(self):
+        '''
+        Performs the iterative analysis of the PondPy object.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        impounded_weight : list
+            list of impounded weight for each iteration
+        iterations : int
+            number of iterations run
+        time_elapsed : float
+            amount of time the analysis took to run in seconds
+        '''
+        iteration = 0
+        impounded_weight = []
+        start = time.time()
+        while True:
+            rain_load = self.roof_bay_model._get_secondary_rl(self.impounded_depth)
+            self.roof_bay_model.analyze_roof_bay(rain_load=rain_load)
+            impounded_weight.append(self._calculate_impounded_weight(self.impounded_depth))
+
+            if iteration > 0:
+                diff = (impounded_weight[iteration] - impounded_weight[iteration-1])/impounded_weight[iteration-1]
+            else:
+                diff = 1
+
+            if diff <= self.stop_criterion or iteration >= self.max_iter:
+                end = time.time()
+                time_elapsed = end - start
+                return impounded_weight, iteration, time_elapsed
+            
+            self.impounded_depth = self._calculate_next_impounded_depth()
+            iteration += 1
+
 # Define sizes for primary and secondary members
-w16x26 = SteelBeamSize('W16X26', aisc.W_shapes.W16X26)
-k_12k1 = SteelJoistSize('12K1', sji.K_Series.K_12K1)
+w18x35 = SteelBeamSize('W18X35', aisc.W_shapes.W18X35)
+k_20k3 = SteelJoistSize('20K3', sji.K_Series.K_20K3)
 
 # Define loading for the roof bay
 loading = Loading(20/1000/144, 22/1000/144, include_sw=True)
 
 # Define the primary and secondary framing
-framing_p = [PrimaryMember(20*12, w16x26, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(2)]
-framing_s = [SecondaryMember(20*12, k_12k1, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(5)]
+framing_p = [PrimaryMember(20*12, w18x35, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(2)]
+framing_s = [SecondaryMember(20*12, k_20k3, [[0,(1,1,0)],[20*12,(1,1,0)]], ploads=[], dloads=[]) for _ in range(5)]
 primary_framing = PrimaryFraming(framing_p)
 secondary_framing = SecondaryFraming(framing_s)
 
 model = PondPyModel(primary_framing, secondary_framing, loading)
-model.roof_bay_model.secondary_models[0].perform_analysis()
-plt = model.roof_bay_model.secondary_models[0].plot_sfd()
+rain_load = model.roof_bay_model._get_secondary_rl(model.roof_bay_model.initial_impounded_depth)
+model.roof_bay_model.analyze_roof_bay(rain_load=rain_load)
+x = model.perform_analysis()
 
 pdb.set_trace()
