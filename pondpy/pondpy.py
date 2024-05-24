@@ -1,9 +1,8 @@
-import pdb
-import time
-
 from joistpy import sji
 from scipy import integrate
 from steelpy import aisc
+import time
+import pdb
 
 from analysis.fem_analysis import (
     SteelBeamSize,
@@ -291,8 +290,6 @@ primary_framing = PrimaryFraming(framing_p)
 secondary_framing = SecondaryFraming(framing_s)
 
 model = PondPyModel(primary_framing, secondary_framing, loading)
-rain_load = model.roof_bay_model._get_secondary_rl(model.roof_bay_model.initial_impounded_depth)
-model.roof_bay_model.analyze_roof_bay(rain_load=rain_load)
 x = model.perform_analysis()
 
 pdb.set_trace()
