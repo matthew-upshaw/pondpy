@@ -719,8 +719,8 @@ class BeamModel:
         left_shear = []
         right_shear = []
         for elem_f in self.element_forces:
-            left_shear.append(elem_f[1]/12)
-            right_shear.append(elem_f[4]/12)
+            left_shear.append(elem_f[1])
+            right_shear.append(elem_f[4])
 
         shear_count1 = 0
         shear_count2 = 0
