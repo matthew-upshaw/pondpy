@@ -3,27 +3,127 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class SteelBeamSize:
+  '''
+  A class representing a steel beam size.
+
+  ...
+
+  Attributes
+  ----------
+  e_mod : int or float
+    elastic modulus of steel in ksi
+  name : str
+    name of the steel beam size
+  properties : steelpy object
+    steelpy object containing properties for the specified steel beam size
+  section_type : str
+    string indicating the section type of the steel shape
+  '''
   def __init__(self, name, properties, e_mod=29000, section_type='AISC'):
+    '''
+    Constructs all the necessary attributes for the steel beam size object.
+
+    Parameters
+    ----------
+    e_mod : int or float, optional
+      elastic modulus of steel in ksi
+    name : str
+      name of the steel beam size
+    properties : steelpy object
+      steelpy object containing properties for the specified steel beam size
+    section_type : str, optional
+      string indicating the section type of the steel shape
+    '''
     self.name = name
     self.properties = properties
     self.e_mod = e_mod
     self.section_type = section_type
 
   def __str__(self):
+    '''
+    Prints the name of the steel beam size.
+    '''
     return f'{self.name}'
   
 class SteelJoistSize:
+  '''
+  A class that represents a steel joist size.
+
+  ...
+
+  Attributes
+  ----------
+  e_mod : int or float
+    elastic modulus of steel in ksi
+  name : str
+    name of the steel joist size
+  properties : joistpy object
+    joistpy object containing properties for the specified steel joist size
+  section_type : str
+    string indicating the section type of the steel shape
+  '''
   def __init__(self, name, properties, e_mod=29000, section_type='SJI'):
+    '''
+    Constructs all the necessary attributes for the steel beam size object.
+
+    Parameters
+    ----------
+    e_mod : int or float, optional
+      elastic modulus of steel in ksi
+    name : str
+      name of the steel joist size
+    properties : joistpy object
+      joistpy object containing properties for the specified steel joist size
+    section_type : str, optional
+      string indicating the section type of the steel shape
+    '''
     self.name = name
     self.properties = properties
     self.e_mod = e_mod
     self.section_type = section_type
 
   def __str__(self):
+    '''
+    Prints the name of the steel joist size.
+    '''
     return f'{self.name}'
 
 class Beam:
+  '''
+  A class that represents an idealized beam.
+
+  ...
+
+  Attributes
+  ----------
+  dloads : list
+    list of dist load objects
+  length : float
+    length of the beam
+  size : steel beam size object
+    steel beam size object for the beam
+  supports : list
+    list of tuples indicating location and type of beam supports
+  ploads : list
+    list of point load objects
+  '''
   def __init__(self, length, size, supports, ploads=[], dloads=[]):
+    '''
+    Constructs all the necessary attributes for the beam object.
+
+    Parameters
+    ----------
+    dloads : list, optional
+      list of dist load objects
+    length : float
+      length of the beam
+    size : steel beam size object
+      steel beam size object for the beam
+    supports : list
+      list of tuples indicating location and type of beam supports
+    ploads : list, optional
+      list of point load objects
+    '''
     self.length = length
     self.size = size
     self.ploads = ploads
@@ -39,9 +139,86 @@ class Beam:
       self.area = size.properties.area
 
 class BeamModel:
-  def __init__(self, beam, max_node_spacing=0.5*12, ini_analysis=True):
+  '''
+  A class representing the analytical model of an idealized beam
+
+  ...
+
+  Parameters
+  ----------
+  beam : beam object
+    beam object to be analyzed
+  dof_num : list
+    list of lists representing the degrees of freedom for each node in the model
+  elem_dload : list
+    list of lists representing the distributed load acting on each element in the model
+  element_forces : numpy array
+    numpy array representing the forces at each end of each element
+    * analysis must be performed to access this attribute
+  elem_nodes : list
+    list of lists representing the node number at each end of each element in the model
+  fef_load_vector : numpy array
+    numpy array represengting the fixed end forces calculated from the dist loads at each node in the model
+  global_stiffness_matrix : numpy array
+    numpy array representing the global stiffness matrix for the model
+  ini_analysis : bool
+    indicates whether or not to initialize analysis upon instantiation
+  local_stiffness_matrices : list
+    list of numpy arrays representing the local stiffness matrix for each element in the model
+  max_node_spacing : float
+    maximum node spacing along the length of the beam model
+  model_nodes : list
+    list of locations of the nodes along the length of the beam model
+  n_dof : int
+    number of degrees of freedom in the model
+  nodal_load_vector : numpy array
+    numpy array containing the applied nodal loads at each node in the model
+  node_elem_fef : list
+    list of lists representing the fixed end forces at each node for each element in the model
+  node_pload : list
+    list of lists representing the point loads at each node in the model
+  node_support : list
+    list of lists representing the support type at each node in the model
+  points_of_interest : list
+    list representing points of interest along the length of the beam for use in creating nodes
+  support_nodes : list
+    list containing the node number of all support nodes in the model
+  support_reactions : numpy array
+    numpy array representing the support reaction at each node in the model
+    * analysis must be performed to access this attribute
+
+  Methods
+  -------
+  add_beam_dload(dload, add_type='add')
+    Adds a distributed load to the Beam object referenced by the BeamModel object.
+  add_beam_pload(pload, add_type='add')
+    Adds a point load to the Beam object referenced by the BeamModel object.
+  initialize_analysis():
+    Prepares the model for analysis. To be called at instantiation and when the user specifies.
+  perform_analysis():
+    Computes the displacement vector, element force matrix, and support reaction vector.
+  plot_bmd():
+    Plots the bending moment diagram of the analyzed beam.
+  plot_deflected_shape():
+    Plots the deflected shape of the analyzed beam.
+  '''
+  def __init__(self, beam, max_node_spacing=6, ini_analysis=True):
+    '''
+    Constructs all the necessary attributes for the beam model object.
+
+    Parameters
+    ----------
+    beam : beam object
+      beam object to be analyzed
+    ini_analysis : bool, optional
+      indicates whether or not to initialize analysis upon instantiation
+    max_node_spacing : float, optional
+      maximum node spacing along the length of the beam model
+    '''
     self.beam = beam
     self.max_node_spacing = max_node_spacing
+    self.element_forces = None
+    self.support_reactions = None
 
     if ini_analysis:
       self.initialize_analysis()
@@ -311,6 +488,17 @@ class BeamModel:
   def add_beam_dload(self, dload, add_type='add'):
     '''
     Adds a distributed load to the Beam object referenced by the BeamModel object.
+
+    Parameters
+    ----------
+    add_type : str, optional
+      indicates whether to add the dload to the existing loads or replace the existing loads
+    dload : list
+      list of dist load objects representing the distributed load(s) to be added to the beam referenced by the beam model
+
+    Returns
+    -------
+    None
     '''
     # Add the distributed load
     if add_type == 'replace':
@@ -324,6 +512,17 @@ class BeamModel:
   def add_beam_pload(self, pload, add_type='add'):
     '''
     Adds a point load to the Beam object referenced by the BeamModel object.
+
+    Parameters
+    ----------
+    add_type : str, optional
+      indicates whether to add the pload to the existing loads or replace the existing loads
+    pload : list
+      list of point load objects representing the point load(s) to be added to the beam referenced by the beam model
+
+    Returns
+    -------
+    None
     '''
     # Add the point load
     if add_type == 'replace':
@@ -336,8 +535,7 @@ class BeamModel:
 
   def initialize_analysis(self):
     '''
-    Prepares the model for analysis. To be called at instantiation and 
-    when the user specifies.
+    Prepares the model for analysis. To be called at instantiation and when the user specifies.
     '''
     self._get_points_of_interest()
     self._create_model_nodes_and_elems()
@@ -351,8 +549,7 @@ class BeamModel:
 
   def perform_analysis(self):
     '''
-    Computes the displacement vector, element force matrix, and
-    support reaction vector.
+    Computes the displacement vector, element force matrix, and support reaction vector.
     '''
     # Calculate the global displacement vector
     load_vector = self.nodal_load_vector - self.fef_load_vector
@@ -414,6 +611,15 @@ class BeamModel:
   def plot_bmd(self):
     '''
     Plots the bending moment diagram of the analyzed beam.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    plt : pyplot object
+      pyplot object representing the bending moment diagram for the analyzed model
     '''
     left_moment = []
     right_moment = []
@@ -456,6 +662,16 @@ class BeamModel:
   def plot_deflected_shape(self, scale=1):
     '''
     Plots the deflected shape of the analyzed beam.
+
+    Parameters
+    ----------
+    scale : int, optional
+      scale to be applied to the deflected shape
+
+    Returns
+    -------
+    plt : pyplot object
+      pyplot object representing the deflected shape of the analyzed beam
     '''
     y_disp = []
     for i_node in range(len(self.model_nodes)):
@@ -475,11 +691,52 @@ class BeamModel:
     return plt
 
 class DistLoad:
+  '''
+  A class representing a distributed load.
+
+  Attributes
+  ----------
+  location : tuple
+    tuple representing the start and end locations of the distributed load along the beam
+  magntidue : tuple
+    tuple of tuples representing the magnitude of the distributed load at its start and end locations
+  '''
   def __init__(self, location, magnitude):
+    '''
+    Constructs all the necessary attributes for the dist load object.
+
+    Parameters
+    ----------
+    location : tuple
+      tuple representing the start and end locations of the distributed load along the beam
+    magntidue : tuple
+      tuple of tuples representing the magnitude of the distributed load at its start and end locations
+    '''
     self.location = location
     self.magnitude = magnitude
 
 class PointLoad:
+  '''
+  A class representing a concentrated load.
+
+  Attributes
+  ----------
+  location : tuple
+    tuple representing the locations of the concentrated load along the beam
+  magntidue : tuple
+    tuple representing the magnitude of the concentrated load
+  '''
+  def __init__(self, location, magnitude):
+    '''
+    Constructs all the necessary attributes for the point load object.
+
+    Parameters
+      ----------
+    location : tuple
+      tuple representing the locations of the concentrated load along the beam
+    magntidue : tuple
+      tuple representing the magnitude of the concentrated load
+    '''
   def __init__(self, location, magnitude):
     self.location = location
     self.magnitude = magnitude

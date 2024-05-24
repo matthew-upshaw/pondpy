@@ -5,7 +5,7 @@ from .fem_analysis import (
     PointLoad,
 )
 
-conv_d_to_q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
+CONV_D_TO_Q = 62.4/(12**3)/1000 # Constant to convert water depth in inches to rain load in k/in^2
 
 class Loading:
     '''
@@ -202,7 +202,43 @@ class RoofBay:
         self.secondary_spacing = secondary_spacing       
 
 class RoofBayModel:
+    '''
+    A class representing the roof bay model object.
+
+    ...
+
+    Attributes
+    ----------
+    initial_impounded_depth : dict
+        dictionary containing initial impounded water depth in inches for each primary and secondary member
+    max_node_spacing : int or float
+        maximum node spacing along length of beam model objects in inches
+    primary_models : list
+        list of beam model objects for the primary framing members
+    roof_bay : roof bay
+        roof bay object
+    secondary models : list
+        list of beam model objects for the secondary framing members
+
+    Methods
+    -------
+    analyze_roof_bay(rain_load):
+        Analyzes the roof bay for the dead load and the input rain loads.
+    initialize_analysis():
+        Prepares the model for analysis. To be called at instantiation and when the user specifies.
+    '''
+
     def __init__(self, roof_bay, max_node_spacing = 6):
+        '''
+        Constructs all the necessary attributes for the roof bay object.
+
+        Parameters
+        ----------
+        max_node_spacing : int or float
+            maximum node spacing along length of beam model objects in inches
+        roof_bay : roof bay
+            roof bay object
+        '''
         self.roof_bay = roof_bay
         self.max_node_spacing = max_node_spacing
 
@@ -230,6 +266,11 @@ class RoofBayModel:
     def _apply_secondary_loads(self, rain_load):
         '''
         Applies the dead and rain loading to each SecondaryMember object in the RoofBayModel object.
+
+        Parameters
+        ----------
+        rain_load : list
+            list of dist load objects representing the rain load on the roof bay
         '''
         for i_smodel, s_model in enumerate(self.secondary_models):
             dloads = []
@@ -283,6 +324,11 @@ class RoofBayModel:
         '''
         Calculates the rain load at each node along the length of each secondary member based on the impounded
         water depth at each node and the trib width for each member.
+
+        Parameters
+        ----------
+        impounded_depth : dict
+            dictionary containing impounded water depth in inches for each primary and secondary member
         '''
         trib_w = self.roof_bay.secondary_tribw
 
@@ -299,8 +345,8 @@ class RoofBayModel:
                     depth_i = impounded_depth['Secondary'][i_member][i_node] # inches
                     depth_j = impounded_depth['Secondary'][i_member][i_node+1] # inches
 
-                    q_rl_i = depth_i*conv_d_to_q # k/in^2
-                    q_rl_j = depth_j*conv_d_to_q # k/in^2
+                    q_rl_i = depth_i*CONV_D_TO_Q # k/in^2
+                    q_rl_j = depth_j*CONV_D_TO_Q # k/in^2
 
                     w_rl_i = q_rl_i*cur_tribw # k/in
                     w_rl_j = q_rl_j*cur_tribw # k/in
@@ -322,7 +368,7 @@ class RoofBayModel:
         '''
         # Load and calculate required parameters
         q_rl = self.roof_bay.loading.rain_load # Units: k/in^2
-        d_impounded_i = q_rl/conv_d_to_q # Depth of impounded water at end i in inches
+        d_impounded_i = q_rl/CONV_D_TO_Q # Depth of impounded water at end i in inches
         roof_slope = self.roof_bay.secondary_framing.slope/12 # Roof slope in in/in
         bay_length = self.roof_bay.secondary_framing.secondary_members[0].length # Length of roof bay in inches
         if roof_slope == 0:
@@ -362,6 +408,15 @@ class RoofBayModel:
     def analyze_roof_bay(self, rain_load):
         '''
         Analyzes the roof bay for the dead load and the input rain loads.
+
+        Parameters
+        ----------
+        rain_load : list
+            list of dist load objects representing the rain load on the roof bay
+
+        Returns
+        -------
+        None
         '''
         # Handle the secondary member analysis first
         # Apply the secondary loads
