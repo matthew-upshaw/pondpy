@@ -42,6 +42,19 @@ class Loading:
 class PrimaryMember(Beam):
     '''
     A class representing a primary member in the roof bay.
+
+    Attributes
+    ----------
+    dloads : list
+        list of dist load objects
+    length : float
+        length of the beam
+    size : steel beam size object
+        steel beam size object for the beam
+    supports : list
+        list of tuples indicating location and type of beam supports
+    ploads : list
+        list of point load objects
     '''
     pass
 
@@ -507,6 +520,19 @@ class RoofBayModel:
 class SecondaryMember(Beam):
     '''
     A class representing a secondary member in the roof bay.
+
+    Attributes
+    ----------
+    dloads : list
+        list of dist load objects
+    length : float
+        length of the beam
+    size : steel beam size object
+        steel beam size object for the beam
+    supports : list
+        list of tuples indicating location and type of beam supports
+    ploads : list
+        list of point load objects
     '''
     pass
 
