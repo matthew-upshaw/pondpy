@@ -142,3 +142,7 @@ Several other attributes of the BeamModel object can be accessed in a similar
 fashion.
 
 Note that only the final analysis results can currently be accessed.
+
+### Additional Information
+- [Documentation](https://pondpy.readthedocs.io/en/latest/)
+- [PyPI Distribution](https://pypi.org/project/pondpy/)
