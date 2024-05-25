@@ -242,14 +242,6 @@ class PondPyModel:
         -------
         output : dict
             dictionary of output variables
-            Keys
-            ----
-            Iterations --> iterations : int
-                number of iterations run
-            Time --> time_elapsed : float
-                amount of time the analysis took to run in seconds
-            Weight --> impounded_weight : list
-                list of impounded weight for each iteration
         '''
         iteration = 0
         impounded_weight = []

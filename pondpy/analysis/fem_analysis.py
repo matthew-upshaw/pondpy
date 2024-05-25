@@ -9,7 +9,7 @@ class SteelBeamSize:
     ...
 
     Attributes
-        ----------
+    ----------
     e_mod : int or float
         elastic modulus of steel in ksi
     name : str
