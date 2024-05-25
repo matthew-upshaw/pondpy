@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pondpy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Package to aid in the design of low-slope roof systems for ponding stability and impounded rain load."
 authors = ["Matthew Upshaw <matthew.upshaw02@gmail.com>"]
 license = "MIT License"
