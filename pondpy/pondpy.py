@@ -1,9 +1,7 @@
-from joistpy import sji
 from scipy import integrate
-from steelpy import aisc
 import time
 
-from analysis.pond_analysis import (
+from pondpy.analysis.pond_analysis import (
     RoofBay,
     RoofBayModel,
 )
