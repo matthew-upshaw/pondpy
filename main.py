@@ -1,3 +1,7 @@
+'''
+This module contains an example of how to set
+up and run an analysis of a simple roof bay.
+'''
 from joistpy import sji
 from steelpy import aisc
 
@@ -47,4 +51,5 @@ loading = Loading(q_dl, q_rl)
 
 pondpy_model = PondPyModel(p_framing, s_framing, loading)
 
-pondpy_model.perform_analysis()
+if __name__ == '__main__':
+    pondpy_model.perform_analysis()
