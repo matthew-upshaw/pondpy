@@ -111,7 +111,7 @@ Optional arguments for the ```PondPyModel``` include:
     default is ```0.0001```
 
 - ```max_iter``` : int indicating the maximum number of iterations that
-    should be performed
+    should be performed; default is ```50```
     
 - ```show_results``` : bool indicating whether the iteration results should
     be printed to the terminal upon completion of the analysis;
