@@ -99,15 +99,20 @@ pondpy_model = PondPyModel(p_framing, s_framing, loading)
 pondpy_model.perform_analysis()
 ```
 Optional arguments for the ```PondPyModel``` include:
+
     - ```mirrored_left```: bool indicating whether the roof bay is mirrored
       on the left side; default is ```False```
+
     - ```mirrored_right``` : bool indicating whether the roof bay is mirrored
       on the right side; default is ```False```
+
     - ```stop_criterion``` : float indicating the error in total impounded
       water weight at which the iterative analysis should be terminated;
       default is ```0.0001```
+
     - ```max_iter``` : int indicating the maximum number of iterations that
       should be performed
+      
     - ```show_results``` : bool indicating whether the iteration results should
       be printed to the terminal upon completion of the analysis;
       default is ```True```
