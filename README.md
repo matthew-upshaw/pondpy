@@ -116,3 +116,29 @@ Optional arguments for the ```PondPyModel``` include:
 - ```show_results``` : bool indicating whether the iteration results should
     be printed to the terminal upon completion of the analysis;
     default is ```True```
+
+### Analysis Results
+Each primary and secondary member is represented within the PondPyModel object
+by a BeamModel object. As such a great deal of analysis results can be obtained
+fairly easily once the analysis is complete.
+
+- To access the deflected shape, shear force diagram, or bending moment diagram
+  of a particular member, use the following calls:
+  ```python
+  member = pondpy_model.roof_bay_model.secondary_members[0]
+  bmd = member.plot_bmd()
+  bmd.show()
+  ```
+  The shear force diagram and deflected shape can be accessed in a similar
+  fashion.
+
+- The support reactions can be obtained as follows:
+  ```python
+  support_nodes = member.support_nodes
+  support_reactions = [member.support_reactions[node] for node in support_nodes]
+  ```
+
+Several other attributes of the BeamModel object can be accessed in a similar
+fashion.
+
+Note that only the final analysis results can currently be accessed.
