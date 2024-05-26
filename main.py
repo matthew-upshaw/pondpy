@@ -5,20 +5,16 @@ up and run an analysis of a simple roof bay.
 from joistpy import sji
 from steelpy import aisc
 
-from pondpy.analysis.fem_analysis import (
+from pondpy import (
     SteelBeamSize,
     SteelJoistSize,
-)
-
-from pondpy.analysis.pond_analysis import (
     PrimaryMember,
     PrimaryFraming,
     SecondaryMember,
     SecondaryFraming,
-    Loading
+    Loading,
+    PondPyModel,
 )
-
-from pondpy.pondpy import PondPyModel
 
 w12x16 = SteelBeamSize('W12X16', aisc.W_shapes.W12X16)
 w16x26 = SteelBeamSize('W16X26', aisc.W_shapes.W16X26)

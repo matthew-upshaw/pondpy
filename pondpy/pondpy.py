@@ -1,7 +1,7 @@
 from scipy import integrate
 import time
 
-from pondpy.analysis.pond_analysis import (
+from pondpy import (
     RoofBay,
     RoofBayModel,
 )
