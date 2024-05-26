@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.12"
 numpy = "1.26.4"
 scipy = "1.13.1"
-joistpy = "0.1.4"
+joistpy = "1.0.0"
 steelpy = "1.1.1"
 matplotlib = "3.9.0"
 
