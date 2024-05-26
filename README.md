@@ -1,6 +1,4 @@
-<p align="center">
-    <img src="https://github.com/matthew-upshaw/pondpy/raw/docs/source/pondpy.png" alt="Logo" width="200">
-</p>
+![pondpy]("docs/source/pondpy.png")
 
 # PondPy
 PondPy is a package built to aid in the design of low-slope roof bays for 
