@@ -7,7 +7,7 @@ Welcome to PondPy's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
 PondPy is a package built to aid in the design of low-slope roof bays
