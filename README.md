@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/matthew-upshaw/pondpy/tree/logo/docs/source/pondpy.png" alt="Logo" width="200" />
+    <img src="docs/source/pondpy.png" alt="Logo" width="200" />
 </p>
 
 # PondPy
