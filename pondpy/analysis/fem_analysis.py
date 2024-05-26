@@ -744,7 +744,7 @@ class BeamModel:
             lval_bmd_count += 1
         
         plt.figure()
-        plt.plot(lval_bmd.tolist(), bmd_val.tolist())
+        plt.plot(lval_bmd.tolist(), bmd_val.tolist(),'b-')
 
         plt.xlabel('Length (ft)')
         plt.ylabel(f'Bending Moment (k-ft)')
@@ -776,7 +776,7 @@ class BeamModel:
                 y_disp.append(0.0)
         
         plt.figure()
-        plt.plot([x/12 for x in self.model_nodes], y_disp)
+        plt.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
 
         plt.xlabel('Length (ft)')
         plt.ylabel(f'Deflection (in) - Scale={scale}:1')
@@ -826,7 +826,7 @@ class BeamModel:
             lval_sfd_count += 1
 
         plt.figure()
-        plt.plot(lval_sfd.tolist(), sfd_val.tolist())
+        plt.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
 
         plt.xlabel('Length (ft)')
         plt.ylabel(f'Shear Force (k)')
