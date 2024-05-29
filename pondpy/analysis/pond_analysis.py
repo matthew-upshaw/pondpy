@@ -444,11 +444,14 @@ class RoofBayModel:
 
         # First deal with the primary members
         impounded_depth_p = {}
-        impounded_depth_p[0] = [d_impounded_i for _ in range(len(self.primary_models[0].model_nodes))]
-        if impounded_length <= bay_length:
-            impounded_depth_p[1] = [0.0 for _ in range(len(self.primary_models[0].model_nodes))]
-        elif impounded_length > bay_length:
-            impounded_depth_p[1] = [d_impounded_i-roof_slope*bay_length for _ in range(len(self.primary_models[0].model_nodes))]
+        for i_pmodel, p_model in enumerate(self.primary_models):
+            if i_pmodel == 0:
+                impounded_depth_p[i_pmodel] = [d_impounded_i for _ in range(len(p_model.model_nodes))]
+            else:
+                if impounded_length <= bay_length:
+                    impounded_depth_p[i_pmodel] = [0.0 for _ in range(len(p_model.model_nodes))]
+                elif impounded_length > bay_length:
+                    impounded_depth_p[1] = [d_impounded_i-roof_slope*bay_length for _ in range(len(p_model.model_nodes))]
 
         # Next deal with the secondary members
         impounded_depth_s = {}
@@ -465,7 +468,7 @@ class RoofBayModel:
             
             impounded_depth_s[idx] = nodal_depth
 
-        self.initial_impounded_depth = {
+        return {
             'Primary':impounded_depth_p,
             'Secondary':impounded_depth_s,
         }
@@ -514,7 +517,7 @@ class RoofBayModel:
         '''
         self._create_primary_models()
         self._create_secondary_models()
-        self._initial_impounded_water_depth()
+        self.initial_impounded_depth = self._initial_impounded_water_depth()
         self.initial_secondary_rl = self._get_secondary_rl(impounded_depth=self.initial_impounded_depth)
 
 class SecondaryMember(Beam):

@@ -79,7 +79,7 @@ class PondPyModel:
         self.stop_criterion = stop_criterion
 
         self._create_roof_bay_model()
-        self.impounded_depth = self.roof_bay_model.initial_impounded_depth
+        self.impounded_depth = self.roof_bay_model._initial_impounded_water_depth()
 
     def _calculate_impounded_weight(self, impounded_depth):
         '''
@@ -190,7 +190,7 @@ class PondPyModel:
         # at each node for each primary member.
         # Note: Impounded depth for the primary members is not required for analysis. All rain
         # loads are assumed to be transferred to the primary members by the secondary members.
-        impounded_depth_p = {}
+        '''impounded_depth_p = {}
         for i_pmodel, p_model in enumerate(self.roof_bay_model.primary_models):
             cur_disp = []
             for i_node in range(len(p_model.model_nodes)):
@@ -206,12 +206,11 @@ class PondPyModel:
                     cur_depth = self.roof_bay_model.initial_impounded_depth['Primary'][i_pmodel][i_node] - cur_disp[i_node]
                     nodal_depth.append(cur_depth)
                         
-            impounded_depth_p[i_pmodel] = nodal_depth
+            impounded_depth_p[i_pmodel] = nodal_depth'''
 
         impounded_depth = {
-            'Primary':impounded_depth_p,
             'Secondary':impounded_depth_s,
-        }           
+        }         
 
         return impounded_depth
 

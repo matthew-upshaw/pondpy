@@ -17,4 +17,8 @@ from .analysis.pond_analysis import (
     SecondaryFraming,
 )
 
+from .design.steel_beam_design import SteelBeamDesign
+
+from .design.steel_joist_design import SteelJoistDesign
+
 from .pondpy import PondPyModel
