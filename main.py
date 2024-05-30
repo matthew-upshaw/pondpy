@@ -4,6 +4,7 @@ up and run an analysis of a simple roof bay.
 '''
 from joistpy import sji
 from steelpy import aisc
+import profile
 
 from pondpy import (
     SteelBeamSize,
