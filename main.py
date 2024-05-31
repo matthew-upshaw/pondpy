@@ -4,7 +4,9 @@ up and run an analysis of a simple roof bay.
 '''
 from joistpy import sji
 from steelpy import aisc
-import profile
+
+def run_analysis(model):
+    model.perform_analysis()
 
 from pondpy import (
     SteelBeamSize,
@@ -48,4 +50,4 @@ loading = Loading(q_dl, q_rl)
 pondpy_model = PondPyModel(p_framing, s_framing, loading)
 
 if __name__ == '__main__':
-    pondpy_model.perform_analysis()
+    run_analysis(pondpy_model)

@@ -1,7 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pdb
 class SteelBeamSize:
     '''
     A class representing a steel beam size.
@@ -250,7 +250,7 @@ class BeamModel:
             # Get the local element stiffness matrix, K
             node_i = self.elem_nodes[i_elem][0]
             node_j = self.elem_nodes[i_elem][1]
-            L = self.model_nodes[node_i] - self.model_nodes[node_j]
+            L = self.model_nodes[node_j] - self.model_nodes[node_i]
             E = self.beam.e_mod
             A = self.beam.area
             I = self.beam.mom_inertia
@@ -270,6 +270,8 @@ class BeamModel:
             K[4][5] = -K[1][2]
             K[5][5] = K[2][2]
 
+            #K = K + K.T - np.diag(K.diagonal())
+            # Fill in symmetric terms
             for i_row in range(6):
                 for i_col in range(i_row+1, 6):
                     K[i_col][i_row] = K[i_row][i_col]
@@ -443,15 +445,15 @@ class BeamModel:
                     m_react_i = (w1*L**2)/12 + ((w2-w1)*L**2)/30
                     m_react_j = -(w1*L**2)/12 - ((w2-w1)*L**2)/20
                 # Place the fixed end forces in the proper location
-                node_elem_fef[elem[0]][1] += v_react_i
-                node_elem_fef[elem[0]][2] += m_react_i
-                node_elem_fef[elem[1]][1] += v_react_j
-                node_elem_fef[elem[1]][2] += m_react_j
+                node_elem_fef[elem[0]][1] += -v_react_i
+                node_elem_fef[elem[0]][2] += -m_react_i
+                node_elem_fef[elem[1]][1] += -v_react_j
+                node_elem_fef[elem[1]][2] += -m_react_j
 
-                elem_loads[i_elem][1] += v_react_i
-                elem_loads[i_elem][2] += m_react_i
-                elem_loads[i_elem][4] += v_react_j
-                elem_loads[i_elem][5] += m_react_j
+                elem_loads[i_elem][1] += -v_react_i
+                elem_loads[i_elem][2] += -m_react_i
+                elem_loads[i_elem][4] += -v_react_j
+                elem_loads[i_elem][5] += -m_react_j
 
         self.node_elem_fef = node_elem_fef
         self.elem_loads = elem_loads
@@ -646,9 +648,12 @@ class BeamModel:
         '''
         # Calculate the global displacement vector
         load_vector = self.nodal_load_vector - self.fef_load_vector
-        self.global_displacement = np.matmul(
+        '''self.global_displacement = np.matmul(
                 np.linalg.inv(self.global_stiffness), load_vector
-                )
+                )'''
+        self.global_displacement = np.linalg.solve(
+            self.global_stiffness, load_vector
+        )
 
         # Calculate element forces
         elemxyM = np.zeros((len(self.elem_nodes), 6))
@@ -810,9 +815,8 @@ class BeamModel:
         sfd_val = np.zeros(2*len(self.model_nodes))
         for i_sfd in range(1, len(self.model_nodes)):
             if i_sfd < 2*len(self.model_nodes)-1:
-                #print(shear_count1, shear_count2)
-                sfd_val[i_sfd+shear_count2] = -left_shear[shear_count1]
-                sfd_val[i_sfd+shear_count2+1] = right_shear[shear_count1]
+                sfd_val[i_sfd+shear_count2] = left_shear[shear_count1]
+                sfd_val[i_sfd+shear_count2+1] = -right_shear[shear_count1]
                 shear_count1 += 1
                 shear_count2 += 1
             elif i_sfd == 2*len(self.model_nodes)-1:
