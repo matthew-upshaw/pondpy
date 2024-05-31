@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/source/pondpy.png" alt="Logo" width="500" />
+    <img src="docs/source/pondpy.svg" alt="Logo" width="500" />
 </p>
 
 # PondPy
