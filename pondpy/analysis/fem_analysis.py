@@ -7,6 +7,32 @@ import steelpy
 beam_section_types = ['AISC']
 joist_section_types = ['SJI']
 
+def valid_dload_location(location):
+    if not isinstance(location, tuple):
+        return False
+    elif len(location) != 2:
+        return False
+    elif not all(isinstance(item, (int, float)) for item in location):
+        return False
+    else:
+        return True
+    
+def valid_dload_magnitude(magnitude):
+    if not isinstance(magnitude, tuple):
+        return False
+    elif len(magnitude) != 3:
+        return False
+    elif not all(isinstance(item, tuple) for item in magnitude):
+        return False
+    else:
+        for item in magnitude:
+            if len(item) != 2:
+                return False
+            for mag in item:
+                if not isinstance(mag, (int, float)):
+                    return False
+        return True
+
 class SteelBeamSize:
     '''
     A class representing a steel beam size.
@@ -894,6 +920,11 @@ class DistLoad:
         magntidue : tuple
             tuple of tuples representing the magnitude of the distributed load at its start and end locations
         '''
+        if not valid_dload_location(location):
+            raise TypeError('location must be a tuple of length 2 containing int or float.')
+        if not valid_dload_magnitude(magnitude):
+            raise TypeError('magnitude must be a tuple of 3 tuples each with length 2 containing int or float.')
+        
         self.location = location
         self.magnitude = magnitude
 
