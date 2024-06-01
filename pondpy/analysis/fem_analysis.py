@@ -902,7 +902,7 @@ class DistLoad:
         self.location = location
         self.magnitude = magnitude
         
-    def _valid_dload_location(location):
+    def _valid_dload_location(self, location):
         '''
         Checks that the location parameter passed to the __init__ method is valid.
         
@@ -925,7 +925,7 @@ class DistLoad:
         else:
             return True
     
-    def _valid_dload_magnitude(magnitude):
+    def _valid_dload_magnitude(self, magnitude):
         '''
         Checks that the magnitude parameter passed to the __init__ method is valid.
         
