@@ -77,3 +77,27 @@ def test_custom_joist_initialization(custom_joist):
     assert custom_joist.e_mod == joist.e_mod
     assert custom_joist.mom_inertia == joist.properties.get_mom_inertia(span=length/12)
     assert custom_joist.area == joist.properties.weight/490*144
+
+def test_invalid_length():
+    with pytest.raises(TypeError):
+        Beam(length=None, size=beam, supports=supports)
+
+def test_invalid_length():
+    with pytest.raises(TypeError):
+        Beam(length=length, size=None, supports=supports)
+
+def test_invalid_ploads():
+    with pytest.raises(TypeError):
+        Beam(length=length, size=beam, supports=supports, ploads=None, dloads=[])
+
+def test_invalid_dloads():
+    with pytest.raises(TypeError):
+        Beam(length=length, size=beam, supports=supports, ploads=[], dloads=None)
+
+def test_invalid_supports():
+    with pytest.raises(TypeError):
+        Beam(length=length, size=beam, supports=None, ploads=[], dloads=[])
+
+def test_span_exceeds_allowable():
+    with pytest.raises(ValueError):
+        Beam(length=29*12, size=joist, supports=supports)

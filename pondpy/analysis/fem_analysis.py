@@ -1,6 +1,11 @@
+import joistpy
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import steelpy
+
+beam_section_types = ['AISC']
+joist_section_types = ['SJI']
 
 class SteelBeamSize:
     '''
@@ -34,6 +39,15 @@ class SteelBeamSize:
         section_type : str, optional
             string indicating the section type of the steel shape
         '''
+        if not isinstance(name, str):
+            raise TypeError('name must be a string.')
+        if not isinstance(properties, steelpy.steelpy.Section):
+            raise TypeError('properties must be a valid steelpy Section object.')
+        if not isinstance(e_mod, (int, float)):
+            raise TypeError('e_mod must be int or float.')
+        if not isinstance(section_type, str) or section_type not in beam_section_types:
+            raise TypeError(f'section_type must be a string. Options are: AISC.')
+        
         self.name = name
         self.properties = properties
         self.e_mod = e_mod
@@ -77,6 +91,15 @@ class SteelJoistSize:
         section_type : str, optional
             string indicating the section type of the steel shape
         '''
+        if not isinstance(name, str):
+            raise TypeError('name must be a string.')
+        if not isinstance(properties, joistpy.joistpy.Designation):
+            raise TypeError('properties must be a valid joistpy Designation object.')
+        if not isinstance(e_mod, (int, float)):
+            raise TypeError('e_mod must be int or float.')
+        if not isinstance(section_type, str) or section_type not in joist_section_types:
+            raise TypeError(f'section_type must be a string. Options are: SJI.')
+        
         self.name = name
         self.properties = properties
         self.e_mod = e_mod
@@ -124,6 +147,20 @@ class Beam:
         ploads : list, optional
             list of point load objects
         '''
+        if not isinstance(length, (int, float)):
+            raise TypeError('length must be int of float.')
+        if not isinstance(size, (SteelBeamSize, SteelJoistSize)):
+            raise TypeError('size must be a valid SteelBeamSize or SteelJoistSize object.')
+        if not isinstance(ploads, list):
+            raise TypeError('ploads must be a list of DistLoad objects or empty list.')
+        if not isinstance(dloads, list):
+            raise TypeError('dloads must be a list of PointLoad objects or empty list.')
+        if not isinstance(supports, list):
+            raise TypeError('supports must be a list of tuples of tuples indicating location and type of support.')
+        
+        if size.section_type == 'SJI' and size.properties.get_wl360(span=length/12) == 0.0:
+            raise ValueError(f'Joist span exceeds allowable span for {size.name}.')
+        
         self.length = length
         self.size = size
         self.ploads = ploads
