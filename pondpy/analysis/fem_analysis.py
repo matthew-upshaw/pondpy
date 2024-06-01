@@ -960,8 +960,8 @@ class PointLoad:
 
     Attributes
     ----------
-    location : tuple
-        tuple representing the locations of the concentrated load along the beam
+    location : int or float
+        int or float representing the location of the concentrated load along the beam
     magntidue : tuple
         tuple representing the magnitude of the concentrated load
     '''
@@ -971,11 +971,57 @@ class PointLoad:
 
         Parameters
             ----------
-        location : tuple
-            tuple representing the locations of the concentrated load along the beam
+        location : int or float
+            int or float representing the location of the concentrated load along the beam
         magntidue : tuple
             tuple representing the magnitude of the concentrated load
         '''
-    def __init__(self, location, magnitude):
+        if not self._valid_pload_location(location):
+            raise TypeError('location must be int or float.')
+        if not self._valid_pload_magnitude(magnitude):
+            raise TypeError('magnitude must be a tuple of length 3 containing int or float.')
+            
         self.location = location
         self.magnitude = magnitude
+        
+    def _valid_pload_location(self, location):
+        '''
+        Checks that the location parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        location : int or float
+            int or float representing the location of the concentrated load along the beam
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the location is valid input
+        '''
+        if not isinstance(location, (int, float)):
+            return False
+        else:
+            return True
+    
+    def _valid_pload_magnitude(self, magnitude):
+        '''
+        Checks that the magnitude parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        magntidue : tuple
+            tuple representing the magnitude of the concentrated load
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the magnitude is valid input
+        '''
+        if not isinstance(magnitude, tuple):
+            return False
+        elif len(magnitude) != 3:
+            return False
+        elif not all(isinstance(item, (int, float)) for item in magnitude):
+            return False
+        else:
+            return True
