@@ -1,7 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import pdb
+
 class SteelBeamSize:
     '''
     A class representing a steel beam size.
@@ -270,11 +270,8 @@ class BeamModel:
             K[4][5] = -K[1][2]
             K[5][5] = K[2][2]
 
-            #K = K + K.T - np.diag(K.diagonal())
-            # Fill in symmetric terms
-            for i_row in range(6):
-                for i_col in range(i_row+1, 6):
-                    K[i_col][i_row] = K[i_row][i_col]
+            # Fill in symmetric terms of K
+            K = K + K.T - np.diag(K.diagonal())
 
             local_stiffness_matrices.append(K)
 
@@ -298,10 +295,8 @@ class BeamModel:
                             if G_dof1 != 0 and G_dof2 != 0:
                                 S[G_dof1-1][G_dof2-1] += K[l_dof1][l_dof2]
 
-            # Fill in symmetric terms
-            for i_row in range(self.n_dof):
-                for i_col in range(i_row+1, self.n_dof):
-                    S[i_col][i_row] = S[i_row][i_col]
+        # Fill in symmetric terms of S
+        S = S + S.T - np.diag(S.diagonal())
 
         self.global_stiffness = S
         self.local_stiffness_matrices = local_stiffness_matrices
