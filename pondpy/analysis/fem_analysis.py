@@ -260,18 +260,46 @@ class BeamModel:
             beam object to be analyzed
         ini_analysis : bool, optional
             indicates whether or not to initialize analysis upon instantiation
-        max_node_spacing : float, optional
+        max_node_spacing : int or float, optional
             maximum node spacing along the length of the beam model
         '''
+        if not isinstance(beam, Beam):
+            raise TypeError('beam must be a valid Beam object.')
+        if not isinstance(ini_analysis, bool):
+            raise TypeError('ini_analysis must be either True or False')
+        if not isinstance(max_node_spacing, (int, float)):
+            raise TypeError('max_node_spacing must be int or float')
+
         self.beam = beam
+        self.ini_analysis = ini_analysis
         self.max_node_spacing = max_node_spacing
 
-        if ini_analysis:
+        if self.ini_analysis:
             self.initialize_analysis()
+            self.global_displacement = np.zeros((self.n_dof, 1))
+            self.global_stiffness_matrix = np.zeros((self.n_dof, self.n_dof))
             self.element_forces = np.zeros((len(self.elem_nodes), 6))
             self.support_reactions = np.zeros((len(self.model_nodes), 3))
         else:
             self.analysis_ready = False
+            self.dof_num = []
+            self.elem_dload = []
+            self.elem_loads = []
+            self.elem_nodes = []
+            self.element_forces = np.empty([0, 0])
+            self.fef_load_vector = np.empty([0, 0])
+            self.global_displacement = np.empty([0, 0])
+            self.global_stiffness_matrix = np.empty([0, 0])
+            self.local_stiffness_matrices = []
+            self.model_nodes = []
+            self.n_dof = 0
+            self.nodal_load_vector = np.empty([0, 0])
+            self.node_elem_fef = []
+            self.node_pload = []
+            self.node_support = []
+            self.points_of_interest = []
+            self.support_nodes = []
+            self.support_reactions = np.empty([0, 0])
 
     def _assemble_global_stiffness(self):
         '''
