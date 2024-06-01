@@ -7,6 +7,9 @@ import steelpy
 beam_section_types = ['AISC']
 joist_section_types = ['SJI']
 
+class AnalysisError(Exception):
+    pass
+
 class SteelBeamSize:
     '''
     A class representing a steel beam size.
@@ -181,8 +184,10 @@ class BeamModel:
 
     ...
 
-    Parameters
+    Attributes
     ----------
+    analysis_ready : bool
+        bool indicating whether the analysis has been initialized and is ready to be performed
     beam : beam object
         beam object to be analyzed
     dof_num : list
@@ -265,6 +270,8 @@ class BeamModel:
             self.initialize_analysis()
             self.element_forces = np.zeros((len(self.elem_nodes), 6))
             self.support_reactions = np.zeros((len(self.model_nodes), 3))
+        else:
+            self.analysis_ready = False
 
     def _assemble_global_stiffness(self):
         '''
@@ -668,6 +675,7 @@ class BeamModel:
         self._fill_global_dof()
         self._assemble_global_stiffness()
         self._get_load_vector()
+        self.analysis_ready = True
 
     def perform_analysis(self):
         '''
@@ -681,62 +689,65 @@ class BeamModel:
         -------
         None
         '''
-        # Calculate the global displacement vector
-        load_vector = self.nodal_load_vector - self.fef_load_vector
-        self.global_displacement = np.matmul(
-                np.linalg.inv(self.global_stiffness), load_vector
-                )
-
-        # Calculate element forces
-        elemxyM = np.zeros((len(self.elem_nodes), 6))
-
-        # Loop over all elements
-        for i_elem in range(len(self.elem_nodes)):
-            local_delta = np.zeros((6, 1))
-            local_Pf = np.zeros((6, 1))
-
-            # Get local element stiffness matrix
-            K = self.local_stiffness_matrices[i_elem]
-
-            l_dof = -1
-            # Extract local data first
-            for i_node in range(2):
-                # Get end node number for element # i_elem
-                node_num = self.elem_nodes[i_elem][i_node]
-                for i_dof in range(3):
-                    l_dof += 1
-                    # Extract local element loads
-                    local_Pf[l_dof] = self.elem_loads[i_elem][l_dof]
-
-                    # Extract local deformations
-                    G_dof = self.dof_num[node_num][i_dof]
-                    if G_dof != 0:
-                        local_delta[l_dof] = self.global_displacement[G_dof-1]
-
+        if not self.analysis_ready:
+            raise AnalysisError('Analysis must first be initialized by calling the initialize_analysis() method.')
+        elif self.analysis_ready:
+            # Calculate the global displacement vector
+            load_vector = self.nodal_load_vector - self.fef_load_vector
+            self.global_displacement = np.matmul(
+                    np.linalg.inv(self.global_stiffness), load_vector
+                    )
+    
             # Calculate element forces
-            local_element_forces = np.matmul(K, local_delta) + local_Pf
-
-            # Store element forces
-            elemxyM[i_elem] = local_element_forces.transpose()
-
-        # Calculate support reactions
-        support_reactions = np.zeros((len(self.model_nodes), 3))
-
-        # Loop over all elements
-        for i_elem in range(len(self.elem_nodes)):
-            l_dof = -1
-
-            # Loop over each node in the element
-            for i_node in range(2):
-                node_num = self.elem_nodes[i_elem][i_node]
-                # Loop over each dof
-                for i_dof in range(3):
-                    l_dof += 1
-                    if self.dof_num[node_num][i_dof] == 0:
-                        support_reactions[node_num][i_dof] += elemxyM[i_elem][l_dof]
-
-        self.element_forces = elemxyM
-        self.support_reactions = support_reactions
+            elemxyM = np.zeros((len(self.elem_nodes), 6))
+    
+            # Loop over all elements
+            for i_elem in range(len(self.elem_nodes)):
+                local_delta = np.zeros((6, 1))
+                local_Pf = np.zeros((6, 1))
+    
+                # Get local element stiffness matrix
+                K = self.local_stiffness_matrices[i_elem]
+    
+                l_dof = -1
+                # Extract local data first
+                for i_node in range(2):
+                    # Get end node number for element # i_elem
+                    node_num = self.elem_nodes[i_elem][i_node]
+                    for i_dof in range(3):
+                        l_dof += 1
+                        # Extract local element loads
+                        local_Pf[l_dof] = self.elem_loads[i_elem][l_dof]
+    
+                        # Extract local deformations
+                        G_dof = self.dof_num[node_num][i_dof]
+                        if G_dof != 0:
+                            local_delta[l_dof] = self.global_displacement[G_dof-1]
+    
+                # Calculate element forces
+                local_element_forces = np.matmul(K, local_delta) + local_Pf
+    
+                # Store element forces
+                elemxyM[i_elem] = local_element_forces.transpose()
+    
+            # Calculate support reactions
+            support_reactions = np.zeros((len(self.model_nodes), 3))
+    
+            # Loop over all elements
+            for i_elem in range(len(self.elem_nodes)):
+                l_dof = -1
+    
+                # Loop over each node in the element
+                for i_node in range(2):
+                    node_num = self.elem_nodes[i_elem][i_node]
+                    # Loop over each dof
+                    for i_dof in range(3):
+                        l_dof += 1
+                        if self.dof_num[node_num][i_dof] == 0:
+                            support_reactions[node_num][i_dof] += elemxyM[i_elem][l_dof]
+    
+            self.element_forces = elemxyM
+            self.support_reactions = support_reactions
 
     def plot_bmd(self):
         '''
