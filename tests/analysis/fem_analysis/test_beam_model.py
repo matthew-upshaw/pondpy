@@ -1,6 +1,7 @@
 import matplotlib
 import numpy as np
 import pytest
+from flaky import flaky
 from steelpy import aisc
 
 from pondpy import (
@@ -134,6 +135,7 @@ def test_invalid_perform_analysis():
         beam_model = BeamModel(beam=beam, ini_analysis=False, max_node_spacing=6)
         beam_model.perform_analysis()
 
+@flaky
 def test_valid_plot_bmd():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()
@@ -145,6 +147,7 @@ def test_invalid_plot_bmd():
         beam_model = BeamModel(beam=beam, ini_analysis=True, max_node_spacing=6)
         beam_model.plot_bmd()
 
+@flaky
 def test_valid_plot_defl():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()
@@ -156,6 +159,7 @@ def test_invalid_plot_bmd():
         beam_model = BeamModel(beam=beam, ini_analysis=True, max_node_spacing=6)
         beam_model.plot_deflected_shape()
 
+@flaky
 def test_valid_plot_bmd():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()

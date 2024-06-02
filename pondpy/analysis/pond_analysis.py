@@ -1,4 +1,5 @@
 from pondpy import (
+    AnalysisError,
     Beam,
     BeamModel,
     DistLoad,
@@ -267,6 +268,10 @@ class RoofBayModel:
 
     Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been successfully performed
+    analysis_ready : bool
+        bool indicating whether the analysis has been initialized and is ready to be performed
     initial_impounded_depth : dict
         dictionary containing initial impounded water depth in inches for each primary and secondary member
     max_node_spacing : int or float
@@ -282,6 +287,8 @@ class RoofBayModel:
     -------
     analyze_roof_bay(rain_load):
         Analyzes the roof bay for the dead load and the input rain loads.
+    generate_plots():
+        Generates the deflected shape, shear force diagram, and bending moment diagram plots for each primary and secondary member.
     initialize_analysis():
         Prepares the model for analysis. To be called at instantiation and when the user specifies.
     '''
@@ -292,11 +299,18 @@ class RoofBayModel:
 
         Parameters
         ----------
-        max_node_spacing : int or float
+        max_node_spacing : int or float, optional
             maximum node spacing along length of beam model objects in inches
         roof_bay : roof bay
             roof bay object
         '''
+        if not isinstance(roof_bay, RoofBay):
+            raise TypeError('roof_bay must be a valid RoofBay object')
+        if not isinstance(max_node_spacing, (int, float)):
+            raise TypeError('max_node_spacing must be int or float')
+
+        self.analysis_complete = False
+        self.analysis_ready = False
         self.roof_bay = roof_bay
         self.max_node_spacing = max_node_spacing
 
@@ -523,6 +537,65 @@ class RoofBayModel:
         for p_model in self.primary_models:
             p_model.perform_analysis()
 
+        self.analysis_complete = True
+
+    def generate_plots(self):
+        '''
+        Generates the deflected shape, shear force diagram, and bending moment
+        diagram plots for each primary and secondary member.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        plots : dict
+            dictionary of dictionaries of lists containing the deflected shape,
+            shear force diagram, and bending moment diagram plots for each
+            primary and secondary member
+        '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+        
+        plots = {
+            'bmd':{
+                'Primary': [],
+                'Secondary': [],
+            },
+            'sfd':{
+                'Primary': [],
+                'Secondary': [],
+            },
+            'defl':{
+                'Primary': [],
+                'Secondary': [],
+            },
+        }
+
+        # First loop over the primary models
+        for p_model in self.primary_models:
+            cur_bmd = p_model.plot_bmd()
+            cur_sfd = p_model.plot_sfd()
+            cur_defl = p_model.plot_deflected_shape()
+
+            plots['bmd']['Primary'].append(cur_bmd)
+            plots['sfd']['Primary'].append(cur_sfd)
+            plots['defl']['Primary'].append(cur_defl)
+
+        # Next loop over the secondary models
+        for s_model in self.secondary_models:
+            cur_bmd = s_model.plot_bmd()
+            cur_sfd = s_model.plot_sfd()
+            cur_defl = s_model.plot_deflected_shape()
+
+            plots['bmd']['Secondary'].append(cur_bmd)
+            plots['sfd']['Secondary'].append(cur_sfd)
+            plots['defl']['Secondary'].append(cur_defl)
+
+        # Return the plots dict
+        return plots
+
     def initialize_analysis(self):
         '''
         Prepares the model for analysis. To be called at instantiation and 
@@ -540,6 +613,7 @@ class RoofBayModel:
         self._create_secondary_models()
         self.initial_impounded_depth = self._initial_impounded_water_depth()
         self.initial_secondary_rl = self._get_secondary_rl(impounded_depth=self.initial_impounded_depth)
+        self.analysis_ready = True
 
 class SecondaryMember(Beam):
     '''

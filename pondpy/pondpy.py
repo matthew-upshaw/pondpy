@@ -2,8 +2,13 @@ from scipy import integrate
 import time
 
 from pondpy import (
+    Loading,
+    PrimaryFraming,
+    PrimaryMember,
     RoofBay,
     RoofBayModel,
+    SecondaryFraming,
+    SecondaryMember,
 )
 
 class PondPyModel:
@@ -69,6 +74,23 @@ class PondPyModel:
         stop_criterion : float, optional
             criterion to stop the iterative analysis
         '''
+        if not isinstance(loading, Loading):
+            raise TypeError('loaidng must be a valid Loading object')
+        if not isinstance(max_iter, int) or max_iter <= 0:
+            raise TypeError('max_iter must be a positive integer')
+        if not isinstance(mirrored_left, bool):
+            raise TypeError('mirrored_left must be either True or False')
+        if not isinstance(mirrored_right, bool):
+            raise TypeError('mirrored_right must be either True or False')
+        if not isinstance(primary_framing, PrimaryFraming):
+            raise TypeError('primary_framing must be a valid PrimaryFraming object')
+        if not isinstance(secondary_framing, SecondaryFraming):
+            raise TypeError('secondary_framing must be a valid SecondaryFraming object')
+        if not isinstance(show_results, bool):
+            raise TypeError('show_results must be either True or False')
+        if not isinstance(stop_criterion, float) or stop_criterion <= 0:
+            raise TypeError('stop_criterion must be a positive float')
+
         self.loading = loading
         self.max_iter = max_iter
         self.mirrored_left = mirrored_left

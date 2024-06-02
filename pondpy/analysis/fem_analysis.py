@@ -151,7 +151,7 @@ class Beam:
             list of point load objects
         '''
         if not isinstance(length, (int, float)):
-            raise TypeError('length must be int of float.')
+            raise TypeError('length must be int or float.')
         if not isinstance(size, (SteelBeamSize, SteelJoistSize)):
             raise TypeError('size must be a valid SteelBeamSize or SteelJoistSize object.')
         if not isinstance(ploads, list):
