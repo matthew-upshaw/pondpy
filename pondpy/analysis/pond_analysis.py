@@ -35,6 +35,13 @@ class Loading:
         include_sw : bool, optional
             indicates whether to conside member self-weight in the analysis
         '''
+        if not isinstance(dead_load, (int, float)):
+            raise TypeError('dead_load must be either int or float')
+        if not isinstance(rain_load, (int, float)):
+            raise TypeError('rain_load must be either int or float')
+        if not isinstance(include_sw, bool):
+            raise TypeError('include_sw must be either True or False')
+        
         self.dead_load = dead_load # Units: k/in^2
         self.rain_load = rain_load # Units: k/in^2
         self.include_sw = include_sw
@@ -78,6 +85,9 @@ class PrimaryFraming:
         primary_members : list
             list of all primary members in the primary framing system
         '''
+        if not isinstance(primary_members, list) or not all(isinstance(item, (PrimaryMember)) for item in primary_members):
+            raise TypeError('primary_members must be a list of valid PrimaryMember objects')
+        
         self.primary_members = primary_members
 
     def __str__(self):
@@ -130,6 +140,17 @@ class RoofBay:
         secondary_framing : secondary framing
             secondary framing object for the roof bay
         '''
+        if not isinstance(loading, Loading):
+            raise TypeError('loading must be a valid Loading object')
+        if not isinstance(primary_framing, PrimaryFraming):
+            raise TypeError('primary_framing must be a valid PrimaryFraming object')
+        if not isinstance(secondary_framing, SecondaryFraming):
+            raise TypeError('secondary_framing must be a valid SecondaryFraming object')
+        if not isinstance(mirrored_left, bool):
+            raise TypeError('mirrored_left must be either True or False')
+        if not isinstance(mirrored_right, bool):
+            raise TypeError('mirrored_right must be either True or False')
+
         self.primary_framing = primary_framing
         self.secondary_framing = secondary_framing
         self.loading = loading
@@ -560,9 +581,14 @@ class SecondaryFraming:
         ----------
         secondary_members : list
             list of all primary members in the framing system
-        slope : float, optional
+        slope : int or float, optional
             slope of the roof bay in in/ft
         '''
+        if not isinstance(secondary_members, list) or not all(isinstance(item, SecondaryMember) for item in secondary_members):
+            raise TypeError('secondary_members must be a list of valid SecondaryFraming objects')
+        if not isinstance(slope, (int, float)):
+            raise TypeError('slope must be int or float')
+
         self.secondary_members = secondary_members
         self.slope = slope
 
