@@ -47,7 +47,7 @@ class PondPyModel:
     perform_analysis():
         Performs the iterative analysis of the PondPy object.
     '''
-    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.0001, max_iter=50, show_results=True):
+    def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.001, max_iter=50, show_results=True):
         '''
         Constructs the required input attributes for the PondPy object.
 
