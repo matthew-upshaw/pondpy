@@ -1,4 +1,4 @@
-from .fem_analysis import (
+from pondpy import (
     Beam,
     BeamModel,
     DistLoad,

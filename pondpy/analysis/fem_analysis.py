@@ -186,6 +186,8 @@ class BeamModel:
 
     Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been performed and is complete
     analysis_ready : bool
         bool indicating whether the analysis has been initialized and is ready to be performed
     beam : beam object
@@ -281,6 +283,7 @@ class BeamModel:
             self.element_forces = np.zeros((len(self.elem_nodes), 6))
             self.support_reactions = np.zeros((len(self.model_nodes), 3))
         else:
+            self.analysis_complete = False
             self.analysis_ready = False
             self.dof_num = []
             self.elem_dload = []
@@ -634,6 +637,26 @@ class BeamModel:
         self.node_support = node_support
         self.support_nodes = support_nodes
 
+    
+    def _valid_add_type(self, add_type):
+        '''
+        Checks if the add_type parameter passed to the add_beam_dload or add_beam_pload methods if valid.
+
+        Parameters
+        ----------
+        add_type : str
+            indicates whether to add the dload to the existing loads or replace the existing loads
+
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the add_type parameter is valid
+        '''
+        if not isinstance(add_type, str) or add_type not in ['add', 'replace']:
+            return False
+        else:
+            return True
+
     def add_beam_dload(self, dload, add_type='add'):
         '''
         Adds a distributed load to the Beam object referenced by the BeamModel object.
@@ -649,6 +672,11 @@ class BeamModel:
         -------
         None
         '''
+        if not isinstance(dload, list) or not all(isinstance(item, DistLoad) for item in dload):
+            raise TypeError('dload must be list of valid DistLoad objects')
+        if not self._valid_add_type(add_type):
+            raise TypeError('add_type must be a string containing "add" or "replace"')
+
         # Add the distributed load
         if add_type == 'replace':
             self.beam.dloads = dload
@@ -673,6 +701,11 @@ class BeamModel:
         -------
         None
         '''
+        if not isinstance(pload, list) or not all(isinstance(item, PointLoad) for item in pload):
+            raise TypeError('pload must be list of valid PointLoad objects')
+        if not self._valid_add_type(add_type):
+            raise TypeError('add_type must be a string containing "add" or "replace"')
+        
         # Add the point load
         if add_type == 'replace':
             self.beam.ploads = pload
@@ -703,6 +736,7 @@ class BeamModel:
         self._fill_global_dof()
         self._assemble_global_stiffness()
         self._get_load_vector()
+        self.analysis_complete = False
         self.analysis_ready = True
 
     def perform_analysis(self):
@@ -774,6 +808,7 @@ class BeamModel:
                         if self.dof_num[node_num][i_dof] == 0:
                             support_reactions[node_num][i_dof] += elemxyM[i_elem][l_dof]
     
+            self.analysis_complete = True
             self.element_forces = elemxyM
             self.support_reactions = support_reactions
 
@@ -787,9 +822,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the bending moment diagram for the analyzed model
+        fig : matplotlib.figure.Figure object
+            figure object representing the bending moment diagram for the analyzed model
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+
         left_moment = []
         right_moment = []
         for elem_f in self.element_forces:
@@ -819,15 +857,14 @@ class BeamModel:
             lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/12
             lval_bmd_count += 1
         
-        plt.figure()
-        plt.plot(lval_bmd.tolist(), bmd_val.tolist(),'b-')
+        fig, ax = plt.subplots()
+        ax.plot(lval_bmd.tolist(), bmd_val.tolist(), 'b-')
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Bending Moment (k-ft)')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel('Bending Moment (k-ft)')
+        ax.grid()
 
-        plt.grid()
-
-        return plt
+        return fig
 
     def plot_deflected_shape(self, scale=1):
         '''
@@ -840,9 +877,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the deflected shape of the analyzed beam
+        fig : matplotlib.figure.Figure object
+            figure object representing the deflected shape of the analyzed beam
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+
         y_disp = []
         for i_node in range(len(self.model_nodes)):
             G_dof = self.dof_num[i_node][1]
@@ -851,15 +891,14 @@ class BeamModel:
             else:
                 y_disp.append(0.0)
         
-        plt.figure()
-        plt.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
+        fig, ax = plt.subplots()
+        ax.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Deflection (in) - Scale={scale}:1')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel(f'Deflection (in) - Scale={scale}:1')
+        ax.grid()
 
-        plt.grid()
-
-        return plt
+        return fig
 
     def plot_sfd(self):
         '''
@@ -871,9 +910,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the shear force diagram for the analyzed model
+        fig : matplotlib.figure.Figure object
+            figure object representing the shear force diagram for the analyzed model
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+        
         left_shear = []
         right_shear = []
         for elem_f in self.element_forces:
@@ -900,16 +942,15 @@ class BeamModel:
             lval_sfd[i_lval_sfd+lval_sfd_count] = self.model_nodes[i_lval_sfd]/12
             lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/12
             lval_sfd_count += 1
+        
+        fig, ax = plt.subplots()
+        ax.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
 
-        plt.figure()
-        plt.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel('Shear Force (k)')
+        ax.grid()
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Shear Force (k)')
-
-        plt.grid()
-
-        return plt
+        return fig
 
 class DistLoad:
     '''
