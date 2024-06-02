@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="docs/source/pondpy.svg" alt="Logo" width="500" />
+</p>
+
 # PondPy
 PondPy is a package built to aid in the design of low-slope roof bays for 
 ponding stability and impounded rain loading. It utilizes a series of
