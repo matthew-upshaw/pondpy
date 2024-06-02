@@ -1,6 +1,14 @@
+import joistpy
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import steelpy
+
+beam_section_types = ['AISC']
+joist_section_types = ['SJI']
+
+class AnalysisError(Exception):
+    pass
 
 class SteelBeamSize:
     '''
@@ -34,6 +42,15 @@ class SteelBeamSize:
         section_type : str, optional
             string indicating the section type of the steel shape
         '''
+        if not isinstance(name, str):
+            raise TypeError('name must be a string.')
+        if not isinstance(properties, steelpy.steelpy.Section):
+            raise TypeError('properties must be a valid steelpy Section object.')
+        if not isinstance(e_mod, (int, float)):
+            raise TypeError('e_mod must be int or float.')
+        if not isinstance(section_type, str) or section_type not in beam_section_types:
+            raise TypeError(f'section_type must be a string. Options are: AISC.')
+        
         self.name = name
         self.properties = properties
         self.e_mod = e_mod
@@ -77,6 +94,15 @@ class SteelJoistSize:
         section_type : str, optional
             string indicating the section type of the steel shape
         '''
+        if not isinstance(name, str):
+            raise TypeError('name must be a string.')
+        if not isinstance(properties, joistpy.joistpy.Designation):
+            raise TypeError('properties must be a valid joistpy Designation object.')
+        if not isinstance(e_mod, (int, float)):
+            raise TypeError('e_mod must be int or float.')
+        if not isinstance(section_type, str) or section_type not in joist_section_types:
+            raise TypeError(f'section_type must be a string. Options are: SJI.')
+        
         self.name = name
         self.properties = properties
         self.e_mod = e_mod
@@ -124,6 +150,20 @@ class Beam:
         ploads : list, optional
             list of point load objects
         '''
+        if not isinstance(length, (int, float)):
+            raise TypeError('length must be int or float.')
+        if not isinstance(size, (SteelBeamSize, SteelJoistSize)):
+            raise TypeError('size must be a valid SteelBeamSize or SteelJoistSize object.')
+        if not isinstance(ploads, list):
+            raise TypeError('ploads must be a list of DistLoad objects or empty list.')
+        if not isinstance(dloads, list):
+            raise TypeError('dloads must be a list of PointLoad objects or empty list.')
+        if not isinstance(supports, list):
+            raise TypeError('supports must be a list of tuples of tuples indicating location and type of support.')
+        
+        if size.section_type == 'SJI' and size.properties.get_wl360(span=length/12) == 0.0:
+            raise ValueError(f'Joist span exceeds allowable span for {size.name}.')
+        
         self.length = length
         self.size = size
         self.ploads = ploads
@@ -144,8 +184,12 @@ class BeamModel:
 
     ...
 
-    Parameters
+    Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been performed and is complete
+    analysis_ready : bool
+        bool indicating whether the analysis has been initialized and is ready to be performed
     beam : beam object
         beam object to be analyzed
     dof_num : list
@@ -218,16 +262,47 @@ class BeamModel:
             beam object to be analyzed
         ini_analysis : bool, optional
             indicates whether or not to initialize analysis upon instantiation
-        max_node_spacing : float, optional
+        max_node_spacing : int or float, optional
             maximum node spacing along the length of the beam model
         '''
+        if not isinstance(beam, Beam):
+            raise TypeError('beam must be a valid Beam object.')
+        if not isinstance(ini_analysis, bool):
+            raise TypeError('ini_analysis must be either True or False')
+        if not isinstance(max_node_spacing, (int, float)):
+            raise TypeError('max_node_spacing must be int or float')
+
         self.beam = beam
+        self.ini_analysis = ini_analysis
         self.max_node_spacing = max_node_spacing
 
-        if ini_analysis:
+        if self.ini_analysis:
             self.initialize_analysis()
+            self.global_displacement = np.zeros((self.n_dof, 1))
+            self.global_stiffness_matrix = np.zeros((self.n_dof, self.n_dof))
             self.element_forces = np.zeros((len(self.elem_nodes), 6))
             self.support_reactions = np.zeros((len(self.model_nodes), 3))
+        else:
+            self.analysis_complete = False
+            self.analysis_ready = False
+            self.dof_num = []
+            self.elem_dload = []
+            self.elem_loads = []
+            self.elem_nodes = []
+            self.element_forces = np.empty([0, 0])
+            self.fef_load_vector = np.empty([0, 0])
+            self.global_displacement = np.empty([0, 0])
+            self.global_stiffness_matrix = np.empty([0, 0])
+            self.local_stiffness_matrices = []
+            self.model_nodes = []
+            self.n_dof = 0
+            self.nodal_load_vector = np.empty([0, 0])
+            self.node_elem_fef = []
+            self.node_pload = []
+            self.node_support = []
+            self.points_of_interest = []
+            self.support_nodes = []
+            self.support_reactions = np.empty([0, 0])
 
     def _assemble_global_stiffness(self):
         '''
@@ -559,6 +634,26 @@ class BeamModel:
         self.node_support = node_support
         self.support_nodes = support_nodes
 
+    
+    def _valid_add_type(self, add_type):
+        '''
+        Checks if the add_type parameter passed to the add_beam_dload or add_beam_pload methods if valid.
+
+        Parameters
+        ----------
+        add_type : str
+            indicates whether to add the dload to the existing loads or replace the existing loads
+
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the add_type parameter is valid
+        '''
+        if not isinstance(add_type, str) or add_type not in ['add', 'replace']:
+            return False
+        else:
+            return True
+
     def add_beam_dload(self, dload, add_type='add'):
         '''
         Adds a distributed load to the Beam object referenced by the BeamModel object.
@@ -574,6 +669,11 @@ class BeamModel:
         -------
         None
         '''
+        if not isinstance(dload, list) or not all(isinstance(item, DistLoad) for item in dload):
+            raise TypeError('dload must be list of valid DistLoad objects')
+        if not self._valid_add_type(add_type):
+            raise TypeError('add_type must be a string containing "add" or "replace"')
+
         # Add the distributed load
         if add_type == 'replace':
             self.beam.dloads = dload
@@ -598,6 +698,11 @@ class BeamModel:
         -------
         None
         '''
+        if not isinstance(pload, list) or not all(isinstance(item, PointLoad) for item in pload):
+            raise TypeError('pload must be list of valid PointLoad objects')
+        if not self._valid_add_type(add_type):
+            raise TypeError('add_type must be a string containing "add" or "replace"')
+        
         # Add the point load
         if add_type == 'replace':
             self.beam.ploads = pload
@@ -628,6 +733,8 @@ class BeamModel:
         self._fill_global_dof()
         self._assemble_global_stiffness()
         self._get_load_vector()
+        self.analysis_complete = False
+        self.analysis_ready = True
 
     def perform_analysis(self):
         '''
@@ -641,65 +748,67 @@ class BeamModel:
         -------
         None
         '''
-        # Calculate the global displacement vector
-        load_vector = self.nodal_load_vector - self.fef_load_vector
-        '''self.global_displacement = np.matmul(
-                np.linalg.inv(self.global_stiffness), load_vector
-                )'''
-        self.global_displacement = np.linalg.solve(
-            self.global_stiffness, load_vector
-        )
 
-        # Calculate element forces
-        elemxyM = np.zeros((len(self.elem_nodes), 6))
-
-        # Loop over all elements
-        for i_elem in range(len(self.elem_nodes)):
-            local_delta = np.zeros((6, 1))
-            local_Pf = np.zeros((6, 1))
-
-            # Get local element stiffness matrix
-            K = self.local_stiffness_matrices[i_elem]
-
-            l_dof = -1
-            # Extract local data first
-            for i_node in range(2):
-                # Get end node number for element # i_elem
-                node_num = self.elem_nodes[i_elem][i_node]
-                for i_dof in range(3):
-                    l_dof += 1
-                    # Extract local element loads
-                    local_Pf[l_dof] = self.elem_loads[i_elem][l_dof]
-
-                    # Extract local deformations
-                    G_dof = self.dof_num[node_num][i_dof]
-                    if G_dof != 0:
-                        local_delta[l_dof] = self.global_displacement[G_dof-1]
-
+        if not self.analysis_ready:
+            raise AnalysisError('Analysis must first be initialized by calling the initialize_analysis() method.')
+        elif self.analysis_ready:
+            # Calculate the global displacement vector
+            load_vector = self.nodal_load_vector - self.fef_load_vector
+            self.global_displacement = np.linalg.solve(
+                self.global_stiffness, load_vector
+            )
+            
             # Calculate element forces
-            local_element_forces = np.matmul(K, local_delta) + local_Pf
-
-            # Store element forces
-            elemxyM[i_elem] = local_element_forces.transpose()
-
-        # Calculate support reactions
-        support_reactions = np.zeros((len(self.model_nodes), 3))
-
-        # Loop over all elements
-        for i_elem in range(len(self.elem_nodes)):
-            l_dof = -1
-
-            # Loop over each node in the element
-            for i_node in range(2):
-                node_num = self.elem_nodes[i_elem][i_node]
-                # Loop over each dof
-                for i_dof in range(3):
-                    l_dof += 1
-                    if self.dof_num[node_num][i_dof] == 0:
-                        support_reactions[node_num][i_dof] += elemxyM[i_elem][l_dof]
-
-        self.element_forces = elemxyM
-        self.support_reactions = support_reactions
+            elemxyM = np.zeros((len(self.elem_nodes), 6))
+    
+            # Loop over all elements
+            for i_elem in range(len(self.elem_nodes)):
+                local_delta = np.zeros((6, 1))
+                local_Pf = np.zeros((6, 1))
+    
+                # Get local element stiffness matrix
+                K = self.local_stiffness_matrices[i_elem]
+    
+                l_dof = -1
+                # Extract local data first
+                for i_node in range(2):
+                    # Get end node number for element # i_elem
+                    node_num = self.elem_nodes[i_elem][i_node]
+                    for i_dof in range(3):
+                        l_dof += 1
+                        # Extract local element loads
+                        local_Pf[l_dof] = self.elem_loads[i_elem][l_dof]
+    
+                        # Extract local deformations
+                        G_dof = self.dof_num[node_num][i_dof]
+                        if G_dof != 0:
+                            local_delta[l_dof] = self.global_displacement[G_dof-1]
+    
+                # Calculate element forces
+                local_element_forces = np.matmul(K, local_delta) + local_Pf
+    
+                # Store element forces
+                elemxyM[i_elem] = local_element_forces.transpose()
+    
+            # Calculate support reactions
+            support_reactions = np.zeros((len(self.model_nodes), 3))
+    
+            # Loop over all elements
+            for i_elem in range(len(self.elem_nodes)):
+                l_dof = -1
+    
+                # Loop over each node in the element
+                for i_node in range(2):
+                    node_num = self.elem_nodes[i_elem][i_node]
+                    # Loop over each dof
+                    for i_dof in range(3):
+                        l_dof += 1
+                        if self.dof_num[node_num][i_dof] == 0:
+                            support_reactions[node_num][i_dof] += elemxyM[i_elem][l_dof]
+    
+            self.analysis_complete = True
+            self.element_forces = elemxyM
+            self.support_reactions = support_reactions
 
     def plot_bmd(self):
         '''
@@ -711,9 +820,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the bending moment diagram for the analyzed model
+        fig : matplotlib.figure.Figure object
+            figure object representing the bending moment diagram for the analyzed model
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+
         left_moment = []
         right_moment = []
         for elem_f in self.element_forces:
@@ -743,15 +855,14 @@ class BeamModel:
             lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/12
             lval_bmd_count += 1
         
-        plt.figure()
-        plt.plot(lval_bmd.tolist(), bmd_val.tolist(),'b-')
+        fig, ax = plt.subplots()
+        ax.plot(lval_bmd.tolist(), bmd_val.tolist(), 'b-')
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Bending Moment (k-ft)')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel('Bending Moment (k-ft)')
+        ax.grid()
 
-        plt.grid()
-
-        return plt
+        return fig
 
     def plot_deflected_shape(self, scale=1):
         '''
@@ -764,9 +875,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the deflected shape of the analyzed beam
+        fig : matplotlib.figure.Figure object
+            figure object representing the deflected shape of the analyzed beam
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+
         y_disp = []
         for i_node in range(len(self.model_nodes)):
             G_dof = self.dof_num[i_node][1]
@@ -775,15 +889,14 @@ class BeamModel:
             else:
                 y_disp.append(0.0)
         
-        plt.figure()
-        plt.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
+        fig, ax = plt.subplots()
+        ax.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Deflection (in) - Scale={scale}:1')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel(f'Deflection (in) - Scale={scale}:1')
+        ax.grid()
 
-        plt.grid()
-
-        return plt
+        return fig
 
     def plot_sfd(self):
         '''
@@ -795,9 +908,12 @@ class BeamModel:
 
         Returns
         -------
-        plt : pyplot object
-            pyplot object representing the shear force diagram for the analyzed model
+        fig : matplotlib.figure.Figure object
+            figure object representing the shear force diagram for the analyzed model
         '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+        
         left_shear = []
         right_shear = []
         for elem_f in self.element_forces:
@@ -823,16 +939,15 @@ class BeamModel:
             lval_sfd[i_lval_sfd+lval_sfd_count] = self.model_nodes[i_lval_sfd]/12
             lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/12
             lval_sfd_count += 1
+        
+        fig, ax = plt.subplots()
+        ax.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
 
-        plt.figure()
-        plt.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
+        ax.set_xlabel('Length (ft)')
+        ax.set_ylabel('Shear Force (k)')
+        ax.grid()
 
-        plt.xlabel('Length (ft)')
-        plt.ylabel(f'Shear Force (k)')
-
-        plt.grid()
-
-        return plt
+        return fig
 
 class DistLoad:
     '''
@@ -856,8 +971,65 @@ class DistLoad:
         magntidue : tuple
             tuple of tuples representing the magnitude of the distributed load at its start and end locations
         '''
+        if not self._valid_dload_location(location):
+            raise TypeError('location must be a tuple of length 2 containing int or float.')
+        if not self._valid_dload_magnitude(magnitude):
+            raise TypeError('magnitude must be a tuple of 3 tuples each with length 2 containing int or float.')
+        
         self.location = location
         self.magnitude = magnitude
+        
+    def _valid_dload_location(self, location):
+        '''
+        Checks that the location parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        location : tuple
+            tuple representing the start and end locations of the distributed load along the beam
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the location is valid input
+        '''
+        if not isinstance(location, tuple):
+            return False
+        elif len(location) != 2:
+            return False
+        elif not all(isinstance(item, (int, float)) for item in location):
+            return False
+        else:
+            return True
+    
+    def _valid_dload_magnitude(self, magnitude):
+        '''
+        Checks that the magnitude parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        magntidue : tuple
+            tuple of tuples representing the magnitude of the distributed load at its start and end locations
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the magnitude is valid input
+        '''
+        if not isinstance(magnitude, tuple):
+            return False
+        elif len(magnitude) != 3:
+            return False
+        elif not all(isinstance(item, tuple) for item in magnitude):
+            return False
+        else:
+            for item in magnitude:
+                if len(item) != 2:
+                    return False
+                for mag in item:
+                    if not isinstance(mag, (int, float)):
+                        return False
+            return True
 
 class PointLoad:
     '''
@@ -865,8 +1037,8 @@ class PointLoad:
 
     Attributes
     ----------
-    location : tuple
-        tuple representing the locations of the concentrated load along the beam
+    location : int or float
+        int or float representing the location of the concentrated load along the beam
     magntidue : tuple
         tuple representing the magnitude of the concentrated load
     '''
@@ -876,11 +1048,57 @@ class PointLoad:
 
         Parameters
             ----------
-        location : tuple
-            tuple representing the locations of the concentrated load along the beam
+        location : int or float
+            int or float representing the location of the concentrated load along the beam
         magntidue : tuple
             tuple representing the magnitude of the concentrated load
         '''
-    def __init__(self, location, magnitude):
+        if not self._valid_pload_location(location):
+            raise TypeError('location must be int or float.')
+        if not self._valid_pload_magnitude(magnitude):
+            raise TypeError('magnitude must be a tuple of length 3 containing int or float.')
+            
         self.location = location
         self.magnitude = magnitude
+        
+    def _valid_pload_location(self, location):
+        '''
+        Checks that the location parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        location : int or float
+            int or float representing the location of the concentrated load along the beam
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the location is valid input
+        '''
+        if not isinstance(location, (int, float)):
+            return False
+        else:
+            return True
+    
+    def _valid_pload_magnitude(self, magnitude):
+        '''
+        Checks that the magnitude parameter passed to the __init__ method is valid.
+        
+        Parameters
+        __________
+        magntidue : tuple
+            tuple representing the magnitude of the concentrated load
+            
+        Returns
+        -------
+        bool : bool
+            bool indicating whether the magnitude is valid input
+        '''
+        if not isinstance(magnitude, tuple):
+            return False
+        elif len(magnitude) != 3:
+            return False
+        elif not all(isinstance(item, (int, float)) for item in magnitude):
+            return False
+        else:
+            return True
