@@ -1,4 +1,5 @@
 from .analysis.fem_analysis import (
+    AnalysisError,
     SteelBeamSize,
     SteelJoistSize,
     Beam,

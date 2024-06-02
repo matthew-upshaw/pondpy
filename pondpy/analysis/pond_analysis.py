@@ -1,4 +1,5 @@
-from .fem_analysis import (
+from pondpy import (
+    AnalysisError,
     Beam,
     BeamModel,
     DistLoad,
@@ -35,6 +36,13 @@ class Loading:
         include_sw : bool, optional
             indicates whether to conside member self-weight in the analysis
         '''
+        if not isinstance(dead_load, (int, float)):
+            raise TypeError('dead_load must be either int or float')
+        if not isinstance(rain_load, (int, float)):
+            raise TypeError('rain_load must be either int or float')
+        if not isinstance(include_sw, bool):
+            raise TypeError('include_sw must be either True or False')
+        
         self.dead_load = dead_load # Units: k/in^2
         self.rain_load = rain_load # Units: k/in^2
         self.include_sw = include_sw
@@ -78,6 +86,9 @@ class PrimaryFraming:
         primary_members : list
             list of all primary members in the primary framing system
         '''
+        if not isinstance(primary_members, list) or not all(isinstance(item, (PrimaryMember)) for item in primary_members):
+            raise TypeError('primary_members must be a list of valid PrimaryMember objects')
+        
         self.primary_members = primary_members
 
     def __str__(self):
@@ -130,6 +141,17 @@ class RoofBay:
         secondary_framing : secondary framing
             secondary framing object for the roof bay
         '''
+        if not isinstance(loading, Loading):
+            raise TypeError('loading must be a valid Loading object')
+        if not isinstance(primary_framing, PrimaryFraming):
+            raise TypeError('primary_framing must be a valid PrimaryFraming object')
+        if not isinstance(secondary_framing, SecondaryFraming):
+            raise TypeError('secondary_framing must be a valid SecondaryFraming object')
+        if not isinstance(mirrored_left, bool):
+            raise TypeError('mirrored_left must be either True or False')
+        if not isinstance(mirrored_right, bool):
+            raise TypeError('mirrored_right must be either True or False')
+
         self.primary_framing = primary_framing
         self.secondary_framing = secondary_framing
         self.loading = loading
@@ -246,6 +268,10 @@ class RoofBayModel:
 
     Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been successfully performed
+    analysis_ready : bool
+        bool indicating whether the analysis has been initialized and is ready to be performed
     initial_impounded_depth : dict
         dictionary containing initial impounded water depth in inches for each primary and secondary member
     max_node_spacing : int or float
@@ -261,6 +287,8 @@ class RoofBayModel:
     -------
     analyze_roof_bay(rain_load):
         Analyzes the roof bay for the dead load and the input rain loads.
+    generate_plots():
+        Generates the deflected shape, shear force diagram, and bending moment diagram plots for each primary and secondary member.
     initialize_analysis():
         Prepares the model for analysis. To be called at instantiation and when the user specifies.
     '''
@@ -271,11 +299,18 @@ class RoofBayModel:
 
         Parameters
         ----------
-        max_node_spacing : int or float
+        max_node_spacing : int or float, optional
             maximum node spacing along length of beam model objects in inches
         roof_bay : roof bay
             roof bay object
         '''
+        if not isinstance(roof_bay, RoofBay):
+            raise TypeError('roof_bay must be a valid RoofBay object')
+        if not isinstance(max_node_spacing, (int, float)):
+            raise TypeError('max_node_spacing must be int or float')
+
+        self.analysis_complete = False
+        self.analysis_ready = False
         self.roof_bay = roof_bay
         self.max_node_spacing = max_node_spacing
 
@@ -502,6 +537,65 @@ class RoofBayModel:
         for p_model in self.primary_models:
             p_model.perform_analysis()
 
+        self.analysis_complete = True
+
+    def generate_plots(self):
+        '''
+        Generates the deflected shape, shear force diagram, and bending moment
+        diagram plots for each primary and secondary member.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        plots : dict
+            dictionary of dictionaries of lists containing the deflected shape,
+            shear force diagram, and bending moment diagram plots for each
+            primary and secondary member
+        '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed prior to generating plots.')
+        
+        plots = {
+            'bmd':{
+                'Primary': [],
+                'Secondary': [],
+            },
+            'sfd':{
+                'Primary': [],
+                'Secondary': [],
+            },
+            'defl':{
+                'Primary': [],
+                'Secondary': [],
+            },
+        }
+
+        # First loop over the primary models
+        for p_model in self.primary_models:
+            cur_bmd = p_model.plot_bmd()
+            cur_sfd = p_model.plot_sfd()
+            cur_defl = p_model.plot_deflected_shape()
+
+            plots['bmd']['Primary'].append(cur_bmd)
+            plots['sfd']['Primary'].append(cur_sfd)
+            plots['defl']['Primary'].append(cur_defl)
+
+        # Next loop over the secondary models
+        for s_model in self.secondary_models:
+            cur_bmd = s_model.plot_bmd()
+            cur_sfd = s_model.plot_sfd()
+            cur_defl = s_model.plot_deflected_shape()
+
+            plots['bmd']['Secondary'].append(cur_bmd)
+            plots['sfd']['Secondary'].append(cur_sfd)
+            plots['defl']['Secondary'].append(cur_defl)
+
+        # Return the plots dict
+        return plots
+
     def initialize_analysis(self):
         '''
         Prepares the model for analysis. To be called at instantiation and 
@@ -519,6 +613,7 @@ class RoofBayModel:
         self._create_secondary_models()
         self.initial_impounded_depth = self._initial_impounded_water_depth()
         self.initial_secondary_rl = self._get_secondary_rl(impounded_depth=self.initial_impounded_depth)
+        self.analysis_ready = True
 
 class SecondaryMember(Beam):
     '''
@@ -560,9 +655,14 @@ class SecondaryFraming:
         ----------
         secondary_members : list
             list of all primary members in the framing system
-        slope : float, optional
+        slope : int or float, optional
             slope of the roof bay in in/ft
         '''
+        if not isinstance(secondary_members, list) or not all(isinstance(item, SecondaryMember) for item in secondary_members):
+            raise TypeError('secondary_members must be a list of valid SecondaryFraming objects')
+        if not isinstance(slope, (int, float)):
+            raise TypeError('slope must be int or float')
+
         self.secondary_members = secondary_members
         self.slope = slope
 
