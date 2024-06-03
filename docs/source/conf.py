@@ -9,10 +9,10 @@ sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'PondPy'
+project = 'pondpy'
 copyright = '2024, Matthew Upshaw'
 author = 'Matthew Upshaw'
-release = '0.1.2'
+release = '0.1.3'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
