@@ -151,7 +151,7 @@ fairly easily once the analysis is complete.
   ```
 
   This method returns a ```dict``` object with keys ```bmd```, ```sfd```, and
-  ```defl``, each of which is associated with a sub-dictionary with keys
+  ```defl```, each of which is associated with a sub-dictionary with keys
   ```Primary``` and ```Secondary```. Each sub-dictionary contains a list of
   the associated plot for each primary or secondary member, as applicable.
 
