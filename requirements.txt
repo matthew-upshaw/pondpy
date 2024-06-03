@@ -1,5 +1,7 @@
-joistpy==0.1.4
+Jinja2==3.1.4
+joistpy==1.0.0
 matplotlib==3.9.0
 numpy==1.26.4
 scipy==1.13.1
 steelpy==1.1.1
+weasyprint==62.1

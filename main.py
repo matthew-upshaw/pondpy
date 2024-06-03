@@ -4,7 +4,7 @@ up and run an analysis of a simple roof bay.
 '''
 from joistpy import sji
 from steelpy import aisc
-
+import pdb
 def run_analysis(model):
     model.perform_analysis()
 
@@ -51,3 +51,4 @@ pondpy_model = PondPyModel(p_framing, s_framing, loading)
 
 if __name__ == '__main__':
     run_analysis(pondpy_model)
+    pdb.set_trace()

@@ -2,13 +2,13 @@ from scipy import integrate
 import time
 
 from pondpy import (
+    AnalysisError,
     Loading,
     PrimaryFraming,
-    PrimaryMember,
+    ReportBuilder,
     RoofBay,
     RoofBayModel,
     SecondaryFraming,
-    SecondaryMember,
 )
 
 class PondPyModel:
@@ -19,6 +19,8 @@ class PondPyModel:
 
     Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been performed
     impounded_depth : dict
         dictionary containing impounded water depth at model nodes for both primary and secondary members
     loading : loading object
@@ -44,8 +46,10 @@ class PondPyModel:
 
     Methods
     -------
+    generate_report():
+        Generates a report for the analyzed PondPyModel object.
     perform_analysis():
-        Performs the iterative analysis of the PondPy object.
+        Performs the iterative analysis of the PondPyModel object.
     '''
     def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.001, max_iter=50, show_results=True):
         '''
@@ -91,6 +95,7 @@ class PondPyModel:
         if not isinstance(stop_criterion, float) or stop_criterion <= 0:
             raise TypeError('stop_criterion must be a positive float')
 
+        self.analysis_complete = False
         self.loading = loading
         self.max_iter = max_iter
         self.mirrored_left = mirrored_left
@@ -251,6 +256,38 @@ class PondPyModel:
         self.roof_bay = RoofBay(self.primary_framing, self.secondary_framing, self.loading, self.mirrored_left, self.mirrored_right)
         self.roof_bay_model = RoofBayModel(self.roof_bay)
 
+    def generate_report(self, output_folder, filename='pondpy_results', filetype='html'):
+        '''
+        Generates a report for the analyzed PondPyModel object.
+
+        Parameters
+        ----------
+        filename : str, optional
+            string represengting the output filename
+        filetype : str, optional
+            string representing the desired output file type
+        output_folder : str
+            string representing the location to which the report should be saved
+
+        Returns
+        -------
+        None
+        '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed before a report can be generated.')
+        
+        report_builder = ReportBuilder(
+            output_folder=output_folder,
+            filename=filename,
+            filetype=filetype,
+        )
+
+        context = {
+            'primary_members': self.roof_bay_model.primary_models,
+        }
+
+        report_builder.save_report(context=context)
+
     def perform_analysis(self):
         '''
         Performs the iterative analysis of the PondPy object.
@@ -293,6 +330,8 @@ class PondPyModel:
                     'Iterations':iteration,
                     'Time':time_elapsed,
                 }
+
+                self.analysis_complete = True
 
                 return output
             

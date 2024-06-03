@@ -18,6 +18,8 @@ from .analysis.pond_analysis import (
     SecondaryFraming,
 )
 
+from .report.report_builder import ReportBuilder
+
 from .design.steel_beam_design import SteelBeamDesign
 
 from .design.steel_joist_design import SteelJoistDesign
