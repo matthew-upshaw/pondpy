@@ -2,8 +2,14 @@
     <img src="docs/source/pondpy.svg" alt="Logo" width="500" />
 </p>
 
-# PondPy
-PondPy is a package built to aid in the design of low-slope roof bays for 
+<p align="center">
+    <a href="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yml/badge.svg"></a>&nbsp;&nbsp;&nbsp;
+    <a href="https://coveralls.io/github/matthew-upshaw/pondpy?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/matthew-upshaw/pondpy/badge.svg?branch=main&v=0.1.2"></a>&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/matthew-upshaw/pondpy/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>&nbsp;&nbsp;&nbsp;
+</p>
+
+# Introduction
+**pondpy** is a package built to aid in the design of low-slope roof bays for 
 ponding stability and impounded rain loading. It utilizes a series of
 purpose-built finite element and ponding analysis classes and methods to be
 as intuitive as possible for the modern engineer.
