@@ -76,7 +76,7 @@ def test_pondpy_model_default_initialization(pondpy_model_default):
     assert pondpy_model_default.primary_framing == primary_framing
     assert pondpy_model_default.secondary_framing == secondary_framing
     assert pondpy_model_default.show_results == True
-    assert pondpy_model_default.stop_criterion == 0.0001
+    assert pondpy_model_default.stop_criterion == 0.001
 
 def test_pondpy_model_custom_initializaton(pondpy_model_custom):
     assert pondpy_model_custom.loading == loading
