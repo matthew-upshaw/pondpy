@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yml/badge.svg"></a>&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/matthew-upshaw/pondpy/actions/workflows/tests.yaml/badge.svg"></a>&nbsp;&nbsp;&nbsp;
     <a href="https://coveralls.io/github/matthew-upshaw/pondpy?branch=main"><img alt="Coverage Status" src="https://coveralls.io/repos/github/matthew-upshaw/pondpy/badge.svg?branch=main&v=0.1.2"></a>&nbsp;&nbsp;&nbsp;
     <a href="https://github.com/matthew-upshaw/pondpy/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>&nbsp;&nbsp;&nbsp;
 </p>
