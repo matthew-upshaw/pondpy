@@ -84,7 +84,7 @@ SecondaryMember
 ReportBuilder
 -------------
 
-.. autoclass:: pondpy.ReportBuilder
+.. autoclass:: pondpy.report.report_builder.ReportBuilder
     :members:
 
 PondPyModel
