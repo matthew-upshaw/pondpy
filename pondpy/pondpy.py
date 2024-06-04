@@ -1,15 +1,18 @@
+import os
 from scipy import integrate
 import time
 
 from pondpy import (
+    AnalysisError,
     Loading,
     PrimaryFraming,
-    PrimaryMember,
+    ReportBuilder,
     RoofBay,
     RoofBayModel,
     SecondaryFraming,
-    SecondaryMember,
 )
+
+from .report.helpers.save_figures import save_figure
 
 class PondPyModel:
     '''
@@ -19,8 +22,12 @@ class PondPyModel:
 
     Attributes
     ----------
+    analysis_complete : bool
+        bool indicating whether the analysis has been performed
     impounded_depth : dict
         dictionary containing impounded water depth at model nodes for both primary and secondary members
+    iter_results : dict
+        dictionary holding iterative analysis results
     loading : loading object
         Loading object representing the loading criteria for the roof bay
     max_iter : int
@@ -29,6 +36,8 @@ class PondPyModel:
         indicates whether the roof bay is mirrored on the left
     mirrored_right : bool
         indicates whether the roof bay is mirrored on the right
+    out_str : str
+        string holding detailed output results for printing to the console
     roof_bay : roof bay object
         roof bay model to used to create the roof bay model
     roof_bay_model : roof bay model object
@@ -44,8 +53,10 @@ class PondPyModel:
 
     Methods
     -------
+    generate_report():
+        Generates a report for the analyzed PondPyModel object.
     perform_analysis():
-        Performs the iterative analysis of the PondPy object.
+        Performs the iterative analysis of the PondPyModel object.
     '''
     def __init__(self, primary_framing, secondary_framing, loading, mirrored_left=False, mirrored_right=False, stop_criterion=0.001, max_iter=50, show_results=True):
         '''
@@ -91,6 +102,8 @@ class PondPyModel:
         if not isinstance(stop_criterion, float) or stop_criterion <= 0:
             raise TypeError('stop_criterion must be a positive float')
 
+        self.analysis_complete = False
+        self.iter_results = {}
         self.loading = loading
         self.max_iter = max_iter
         self.mirrored_left = mirrored_left
@@ -251,6 +264,127 @@ class PondPyModel:
         self.roof_bay = RoofBay(self.primary_framing, self.secondary_framing, self.loading, self.mirrored_left, self.mirrored_right)
         self.roof_bay_model = RoofBayModel(self.roof_bay)
 
+    def generate_report(self, output_folder, filename='pondpy_results', filetype='html', company='', proj_num='', proj_name='', desc=''):
+        '''
+        Generates a report for the analyzed PondPyModel object.
+
+        Parameters
+        ----------
+        company : str, optional
+            string representing the company name
+        desc : str, optional
+            string representing the calculation description
+        filename : str, optional
+            string represengting the output filename
+        filetype : str, optional
+            string representing the desired output file type
+        output_folder : str
+            string representing the location to which the report should be saved
+        proj_name : str, optional
+            string representing the project name
+        proj_num : str, optional
+            string representing the project number
+
+        Returns
+        -------
+        None
+        '''
+        if not self.analysis_complete:
+            raise AnalysisError('Analysis must be performed before a report can be generated.')
+        
+        report_builder = ReportBuilder(
+            output_folder=output_folder,
+            filename=filename,
+            filetype=filetype,
+        )
+
+        p_max_defl = []
+        p_max_mom = []
+        p_max_shear = []
+        for p_model in self.roof_bay_model.primary_models:
+            _, cur_defl_max = p_model.plot_deflected_shape()
+            _, cur_mom_max = p_model.plot_bmd()
+            _, cur_shear_max = p_model.plot_sfd()
+
+            p_max_defl.append(cur_defl_max)
+            p_max_mom.append(cur_mom_max)
+            p_max_shear.append(cur_shear_max)
+
+        s_max_defl = []
+        s_max_mom = []
+        s_max_shear = []
+        for s_model in self.roof_bay_model.secondary_models:
+            _, cur_defl_max = s_model.plot_deflected_shape()
+            _, cur_mom_max = s_model.plot_bmd()
+            _, cur_shear_max = s_model.plot_sfd()
+
+            s_max_defl.append(cur_defl_max)
+            s_max_mom.append(cur_mom_max)
+            s_max_shear.append(cur_shear_max)
+
+        plots = self.roof_bay_model.generate_plots()
+
+        p_plot_paths = {
+            'bmd': [],
+            'sfd': [],
+            'defl': [],
+        }
+
+        for i_pmodel, _ in enumerate(self.roof_bay_model.primary_models):
+            for key in plots.keys():
+                cur_fig = plots[key]['Primary'][i_pmodel]
+                cur_name = f'primary_{i_pmodel}_{key}'
+                cur_path = os.path.join(output_folder, 'plots\\', f'{cur_name}.png')
+                save_figure(cur_fig, cur_name, os.path.join(output_folder, 'plots\\'))
+
+                p_plot_paths[key].append(cur_path)
+
+        s_plot_paths = {
+            'bmd': [],
+            'sfd': [],
+            'defl': [],
+        }
+
+        for i_smodel, _ in enumerate(self.roof_bay_model.secondary_models):
+            for key in plots.keys():
+                cur_fig = plots[key]['Secondary'][i_smodel]
+                cur_name = f'secondary_{i_smodel}_{key}'
+                cur_path = os.path.join(output_folder, 'plots\\', f'{cur_name}.png')
+                save_figure(cur_fig, cur_name, os.path.join(output_folder, 'plots\\'))
+
+                s_plot_paths[key].append(cur_path)  
+        
+        context = {
+            'company':company,
+            'desc':desc,
+            'project_info':proj_num+'-'+proj_name,
+            'favicon_path':report_builder.favicon_path,
+            'generated_at':report_builder.generated_at,
+            'logo_path':report_builder.logo_path,
+            'version_no':report_builder.version_no,
+            'dead_load':round(self.loading.dead_load*144*1000, 1),
+            'initial_rain_depth':round(self.loading.dead_load*144*1000/5.2, 2),
+            'model': self,
+            'num_iter':self.iter_results['Iterations']+1,
+            'num_p':len(self.roof_bay_model.primary_models),
+            'num_s':len(self.roof_bay_model.secondary_models),
+            'primary_members':self.roof_bay_model.primary_models,
+            'p_max_defl':p_max_defl,
+            'p_max_mom':p_max_mom,
+            'p_max_shear':p_max_shear,
+            'p_plot_paths':p_plot_paths,
+            'secondary_members':self.roof_bay_model.secondary_models,
+            's_max_defl':s_max_defl,
+            's_max_mom':s_max_mom,
+            's_max_shear':s_max_shear,
+            's_plot_paths':s_plot_paths,
+            'rain_load':round(self.loading.rain_load*144*1000, 1),
+            'run_time':round(self.iter_results['Time'], 2),
+            'w_water':round(self.iter_results['Weight'][-1], 2),
+        }
+
+        report_builder.save_report(context=context)
+
     def perform_analysis(self):
         '''
         Performs the iterative analysis of the PondPy object.
@@ -285,6 +419,7 @@ class PondPyModel:
                 end = time.time()
                 time_elapsed = end - start
                 out_str += f'Analysis finished in {round(time_elapsed, 2)} s.'
+                self.out_str = out_str
                 if self.show_results:
                     print(out_str)
 
@@ -293,6 +428,9 @@ class PondPyModel:
                     'Iterations':iteration,
                     'Time':time_elapsed,
                 }
+
+                self.analysis_complete = True
+                self.iter_results = output
 
                 return output
             

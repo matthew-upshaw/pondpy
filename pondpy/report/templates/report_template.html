@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" href={{ favicon_path }}>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+        <title>Pondpy Calculation Report</title>
+    </head>
+    <body>
+        <div class="container-fluid">
+            <!-- Report Header -->
+            <div class="row d-flex align-items-top border-bottom mb-6">
+                <div class="col-3">
+                    <img src={{ logo_path }} width="200">
+                </div>
+                <div class="col-9">
+                    <div class="row">
+                        <div class="col-4">
+                            <small><b>pondpy v{{ version_no }}</b></small><br>
+                            <small><b>Company:</b> {{ company }}</small>
+                        </div>
+                        <div class="col-5">
+                            <small><b>Project:</b> {{ project_info }}</small><br>
+                            <small><b>Date:</b> {{ generated_at|datetime_format }}</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-9">
+                            <br>
+                            <small><b>Description:</b> {{ desc }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!-- Input Data Section -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row border-bottom mb-2">
+                        <div class="col-12">
+                            <h5><b>Input Model Parameters</b></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Roof Bay Parameters</b></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small><b>Num. of Primary Members:</b> {{ num_p }}</small><br>
+                            <small><b>Num. of Secondary Members:</b> {{ num_s }}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Roof Slope:</b> {{ model.roof_bay.secondary_framing.slope }}:12</small><br>
+                            <small><b>Mirrored Left:</b> {{ model.roof_bay.mirrored_left }}</small><br>
+                            <small><b>Mirrored Right:</b> {{ model.roof_bay.mirrored_right }}</small><br>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Loading Parameters</b></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small><b>Surface Dead Load:</b> {{ dead_load }} psf</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Surface Rain Load:</b> {{ rain_load }} psf</small><br>
+                            <small><b>Initial Impounded Rain Depth:</b> {{ initial_rain_depth }} in</small><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!-- Results Section -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row border-bottom mb-2">
+                        <div class="col-12">
+                            <h5><b>Results</b></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small>The model ran {{ num_iter }} iterations in {{ run_time }} s.</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Final Impounded Water Weight:</b> {{ w_water }} kips</small>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Detailed Member Results</b></p>
+                        </div>
+                        <br>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b><i>Primary Members</i></b></p>
+                        </div>
+                    </div>
+                    {% for member in primary_members %}
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Primary Member {{ loop.index }}:</b> {{ member.beam.size.name }}</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: {{ p_max_defl[loop.index-1][0] }} in @ {{ p_max_defl[loop.index-1][1] }} ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: {{ p_max_mom[loop.index-1][0] }} k-ft @ {{ p_max_mom[loop.index-1][1] }} ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: {{ p_max_shear[loop.index-1][0] }} k @ {{ p_max_shear[loop.index-1][1] }} ft</small>
+                            </div>
+                            <br>
+                            <div class="row text-center">
+                                <div class="col-6 text-center">
+                                    <small><b>Bending Moment Diagram</b></small>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <small><b>Shear Force Diagram</b></small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 text-center">
+                                    <p><img src="{{ p_plot_paths['bmd'][loop.index-1] }}" width="300"></p>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <p><img src="{{ p_plot_paths['sfd'][loop.index-1] }}" width="300"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    {% endfor %}
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b><i>Secondary Members</i></b></p>
+                        </div>
+                    </div>
+                    {% for member in secondary_members %}
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member {{ loop.index }}:</b> {{ member.beam.size.name }}</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: {{ s_max_defl[loop.index-1][0] }} in @ {{ s_max_defl[loop.index-1][1] }} ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: {{ s_max_mom[loop.index-1][0] }} k-ft @ {{ s_max_mom[loop.index-1][1] }} ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: {{ s_max_shear[loop.index-1][0] }} k @ {{ s_max_shear[loop.index-1][1] }} ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="{{ s_plot_paths['bmd'][loop.index-1] }}" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="{{ s_plot_paths['sfd'][loop.index-1] }}" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    {% endfor %}
+                </div>
+            </div>
+            <br>
+            <!-- Disclaimer -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5><b>Disclaimer</b></h5>
+                            <small><i>
+                                The creator of this Python package (pondpy) does
+                                not guarantee the accuracy, completeness, or
+                                reliability of the results presented in this
+                                report. The results are intended for informational
+                                purposes only. They should not be relied upon as
+                                a substitute for engineering judgment. It is 
+                                essential that all designs and calculations be 
+                                verified and approved by a qualified design 
+                                professional to ensure their suitability and 
+                                compliance with applicable standards and regulations.
+                            </i></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </body>
+</html>
+                        

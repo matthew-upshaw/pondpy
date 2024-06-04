@@ -139,7 +139,7 @@ def test_invalid_perform_analysis():
 def test_valid_plot_bmd():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()
-    bmd_plot = beam_model.plot_bmd()
+    bmd_plot, _ = beam_model.plot_bmd()
     assert isinstance(bmd_plot, matplotlib.figure.Figure)
 
 def test_invalid_plot_bmd():
@@ -151,7 +151,7 @@ def test_invalid_plot_bmd():
 def test_valid_plot_defl():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()
-    defl_plot = beam_model.plot_deflected_shape()
+    defl_plot, _ = beam_model.plot_deflected_shape()
     assert isinstance(defl_plot, matplotlib.figure.Figure)
 
 def test_invalid_plot_bmd():
@@ -160,13 +160,13 @@ def test_invalid_plot_bmd():
         beam_model.plot_deflected_shape()
 
 @flaky
-def test_valid_plot_bmd():
+def test_valid_plot_sfd():
     beam_model = BeamModel(beam=beam)
     beam_model.perform_analysis()
-    sfd_plot = beam_model.plot_sfd()
+    sfd_plot, _ = beam_model.plot_sfd()
     assert isinstance(sfd_plot, matplotlib.figure.Figure)
 
-def test_invalid_plot_bmd():
+def test_invalid_plot_sfd():
     with pytest.raises(AnalysisError):
         beam_model = BeamModel(beam=beam, ini_analysis=True, max_node_spacing=6)
         beam_model.plot_sfd()
