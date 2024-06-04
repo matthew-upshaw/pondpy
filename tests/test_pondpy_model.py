@@ -1,8 +1,10 @@
+import os
 import pytest
 from joistpy import sji
 from steelpy import aisc
 
 from pondpy import (
+    AnalysisError,
     BeamModel,
     DistLoad,
     SteelBeamSize,
@@ -44,6 +46,8 @@ q_dl = 20/1000/144 # Surface dead load in ksi
 q_rl = 22.4/1000/144 # Surface rain load at secondary drainage inlet in ksi
 
 loading = Loading(q_dl, q_rl)
+
+output_folder = os.path.join(os.path.dirname(__file__), 'report\\report_test')
 
 @pytest.fixture
 def pondpy_model_default():
@@ -196,3 +200,11 @@ def test_invalid_stop_criterion():
 
 def test_perform_analysis(pondpy_model_default):
     pondpy_model_default.perform_analysis()
+
+def test_valid_generate_report(pondpy_model_default):
+    pondpy_model_default.perform_analysis()
+    pondpy_model_default.generate_report(output_folder=output_folder)
+
+def test_invalid_generate_report(pondpy_model_default):
+    with pytest.raises(AnalysisError):
+        pondpy_model_default.generate_report(output_folder=output_folder)

@@ -14,6 +14,8 @@ def get_version_from_pyproject(toml_path):
     version_no : str
         string representing the package version
     '''
+    if not isinstance(toml_path, str):
+        raise TypeError('toml_path must be a string')
     try:
         with open(toml_path, 'r') as toml_file:
             pyproject_data = toml.load(toml_file)
