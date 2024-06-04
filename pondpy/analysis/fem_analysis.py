@@ -1,5 +1,6 @@
 import joistpy
 import math
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import steelpy
@@ -862,7 +863,18 @@ class BeamModel:
         ax.set_ylabel('Bending Moment (k-ft)')
         ax.grid()
 
-        return fig
+        max_mom = max(bmd_val.tolist())
+        min_mom = min(bmd_val.tolist())
+        if abs(max_mom) > abs(min_mom):
+            x_max = lval_bmd.tolist()[bmd_val.tolist().index(max_mom)]
+            abs_max_mom = abs(max_mom)
+        elif abs(min_mom) >= abs(max_mom):
+            x_max = lval_bmd.tolist()[bmd_val.tolist().index(min_mom)]
+            abs_max_mom = abs(min_mom)
+        
+        matplotlib.pyplot.close()
+
+        return fig, (round(abs_max_mom, 2), round(x_max, 2))
 
     def plot_deflected_shape(self, scale=1):
         '''
@@ -896,7 +908,12 @@ class BeamModel:
         ax.set_ylabel(f'Deflection (in) - Scale={scale}:1')
         ax.grid()
 
-        return fig
+        max_defl = min(y_disp)
+        x_max = [x/12 for x in self.model_nodes][y_disp.index(max_defl)]
+        
+        matplotlib.pyplot.close()
+
+        return fig, (round(max_defl, 2), round(x_max, 2))
 
     def plot_sfd(self):
         '''
@@ -947,7 +964,18 @@ class BeamModel:
         ax.set_ylabel('Shear Force (k)')
         ax.grid()
 
-        return fig
+        max_shear = max(sfd_val.tolist())
+        min_shear = min(sfd_val.tolist())
+        if abs(max_shear) > abs(min_shear):
+            x_max = lval_sfd.tolist()[sfd_val.tolist().index(max_shear)]
+            abs_max_shear = abs(max_shear)
+        elif abs(min_shear) >= abs(max_shear):
+            x_max = lval_sfd.tolist()[sfd_val.tolist().index(min_shear)]
+            abs_max_shear = abs(min_shear)
+        
+        matplotlib.pyplot.close()
+
+        return fig, (round(abs_max_shear, 2), round(x_max, 2))
 
 class DistLoad:
     '''

@@ -1,3 +1,4 @@
+import os
 from scipy import integrate
 import time
 
@@ -10,6 +11,8 @@ from pondpy import (
     RoofBayModel,
     SecondaryFraming,
 )
+
+from .report.helpers.save_figures import save_figure
 
 class PondPyModel:
     '''
@@ -33,6 +36,8 @@ class PondPyModel:
         indicates whether the roof bay is mirrored on the left
     mirrored_right : bool
         indicates whether the roof bay is mirrored on the right
+    out_str : str
+        string holding detailed output results for printing to the console
     roof_bay : roof bay object
         roof bay model to used to create the roof bay model
     roof_bay_model : roof bay model object
@@ -293,6 +298,62 @@ class PondPyModel:
             filetype=filetype,
         )
 
+        p_max_defl = []
+        p_max_mom = []
+        p_max_shear = []
+        for p_model in self.roof_bay_model.primary_models:
+            _, cur_defl_max = p_model.plot_deflected_shape()
+            _, cur_mom_max = p_model.plot_bmd()
+            _, cur_shear_max = p_model.plot_sfd()
+
+            p_max_defl.append(cur_defl_max)
+            p_max_mom.append(cur_mom_max)
+            p_max_shear.append(cur_shear_max)
+
+        s_max_defl = []
+        s_max_mom = []
+        s_max_shear = []
+        for s_model in self.roof_bay_model.secondary_models:
+            _, cur_defl_max = s_model.plot_deflected_shape()
+            _, cur_mom_max = s_model.plot_bmd()
+            _, cur_shear_max = s_model.plot_sfd()
+
+            s_max_defl.append(cur_defl_max)
+            s_max_mom.append(cur_mom_max)
+            s_max_shear.append(cur_shear_max)
+
+        plots = self.roof_bay_model.generate_plots()
+
+        p_plot_paths = {
+            'bmd': [],
+            'sfd': [],
+            'defl': [],
+        }
+
+        for i_pmodel, _ in enumerate(self.roof_bay_model.primary_models):
+            for key in plots.keys():
+                cur_fig = plots[key]['Primary'][i_pmodel]
+                cur_name = f'primary_{i_pmodel}_{key}'
+                cur_path = os.path.join(output_folder, 'plots\\', f'{cur_name}.png')
+                save_figure(cur_fig, cur_name, os.path.join(output_folder, 'plots\\'))
+
+                p_plot_paths[key].append(cur_path)
+
+        s_plot_paths = {
+            'bmd': [],
+            'sfd': [],
+            'defl': [],
+        }
+
+        for i_smodel, _ in enumerate(self.roof_bay_model.secondary_models):
+            for key in plots.keys():
+                cur_fig = plots[key]['Secondary'][i_smodel]
+                cur_name = f'secondary_{i_smodel}_{key}'
+                cur_path = os.path.join(output_folder, 'plots\\', f'{cur_name}.png')
+                save_figure(cur_fig, cur_name, os.path.join(output_folder, 'plots\\'))
+
+                s_plot_paths[key].append(cur_path)  
+        
         context = {
             'company':company,
             'desc':desc,
@@ -304,10 +365,21 @@ class PondPyModel:
             'dead_load':round(self.loading.dead_load*144*1000, 1),
             'initial_rain_depth':round(self.loading.dead_load*144*1000/5.2, 2),
             'model': self,
-            'num_iter':self.iter_results['Iterations'],
+            'num_iter':self.iter_results['Iterations']+1,
             'num_p':len(self.roof_bay_model.primary_models),
             'num_s':len(self.roof_bay_model.secondary_models),
+            'primary_members':self.roof_bay_model.primary_models,
+            'p_max_defl':p_max_defl,
+            'p_max_mom':p_max_mom,
+            'p_max_shear':p_max_shear,
+            'p_plot_paths':p_plot_paths,
+            'secondary_members':self.roof_bay_model.secondary_models,
+            's_max_defl':s_max_defl,
+            's_max_mom':s_max_mom,
+            's_max_shear':s_max_shear,
+            's_plot_paths':s_plot_paths,
             'rain_load':round(self.loading.rain_load*144*1000, 1),
+            'run_time':round(self.iter_results['Time'], 2),
             'w_water':round(self.iter_results['Weight'][-1], 2),
         }
 
@@ -347,6 +419,7 @@ class PondPyModel:
                 end = time.time()
                 time_elapsed = end - start
                 out_str += f'Analysis finished in {round(time_elapsed, 2)} s.'
+                self.out_str = out_str
                 if self.show_results:
                     print(out_str)
 

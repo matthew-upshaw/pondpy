@@ -13,7 +13,8 @@
     </head>
     <body>
         <div class="container-fluid">
-            <div class="row d-flex align-items-top border-bottom">
+            <!-- Report Header -->
+            <div class="row d-flex align-items-top border-bottom mb-6">
                 <div class="col-3">
                     <img src=C:\Users\mattu\Documents\pondpy\pondpy\report\templates\pondpy.svg width="200">
                 </div>
@@ -25,13 +26,360 @@
                         </div>
                         <div class="col-5">
                             <small><b>Project:</b> 12345-Example Project</small><br>
-                            <small><b>Date:</b> 2024-06-03, 23:54:37</small>
+                            <small><b>Date:</b> 2024-06-04, 13:30:15</small>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-9">
                             <br>
                             <small><b>Description:</b> A sample calculation</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!-- Input Data Section -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row border-bottom mb-2">
+                        <div class="col-12">
+                            <h5><b>Input Model Parameters</b></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Roof Bay Parameters</b></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small><b>Num. of Primary Members:</b> 2</small><br>
+                            <small><b>Num. of Secondary Members:</b> 5</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Roof Slope:</b> 0.25:12</small><br>
+                            <small><b>Mirrored Left:</b> False</small><br>
+                            <small><b>Mirrored Right:</b> False</small><br>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Loading Parameters</b></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small><b>Surface Dead Load:</b> 20.0 psf</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Surface Rain Load:</b> 22.4 psf</small><br>
+                            <small><b>Initial Impounded Rain Depth:</b> 3.85 in</small><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!-- Results Section -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row border-bottom mb-2">
+                        <div class="col-12">
+                            <h5><b>Results</b></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small>The model ran 4 iterations in 1.17 s.</small>
+                        </div>
+                        <div class="col-6">
+                            <small><b>Final Impounded Water Weight:</b> 4.55 kips</small>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b>Detailed Member Results</b></p>
+                        </div>
+                        <br>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b><i>Primary Members</i></b></p>
+                        </div>
+                    </div>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Primary Member 1:</b> W16X26</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.33 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 41.8 k-ft @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 7.59 k @ 19.65 ft</small>
+                            </div>
+                            <br>
+                            <div class="row text-center">
+                                <div class="col-6 text-center">
+                                    <small><b>Bending Moment Diagram</b></small>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <small><b>Shear Force Diagram</b></small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 text-center">
+                                    <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\primary_0_bmd.png" width="300"></p>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\primary_0_sfd.png" width="300"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Primary Member 2:</b> W16X26</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.29 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 37.66 k-ft @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 6.96 k @ 19.65 ft</small>
+                            </div>
+                            <br>
+                            <div class="row text-center">
+                                <div class="col-6 text-center">
+                                    <small><b>Bending Moment Diagram</b></small>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <small><b>Shear Force Diagram</b></small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 text-center">
+                                    <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\primary_1_bmd.png" width="300"></p>
+                                </div>
+                                <div class="col-6 text-center">
+                                    <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\primary_1_sfd.png" width="300"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <p><b><i>Secondary Members</i></b></p>
+                        </div>
+                    </div>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member 1:</b> W12X16</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.11 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 4.49 k-ft @ 9.33 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 1.0 k @ 0.0 ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_0_bmd.png" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_0_sfd.png" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member 2:</b> 14K1</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.35 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 8.16 k-ft @ 9.33 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 1.82 k @ 0.0 ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_1_bmd.png" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_1_sfd.png" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member 3:</b> 14K1</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.35 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 8.28 k-ft @ 9.33 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 1.85 k @ 0.0 ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_2_bmd.png" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_2_sfd.png" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member 4:</b> 14K1</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.35 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 8.16 k-ft @ 9.33 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 1.82 k @ 0.0 ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_3_bmd.png" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_3_sfd.png" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    
+                        <div class="row">
+                            <div class="col-12">
+                                <small><b>Secondary Member 5:</b> W12X16</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Max Deflection: -0.11 in @ 9.82 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Moment: 4.49 k-ft @ 9.33 ft</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Max Shear: 1.0 k @ 0.0 ft</small>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <small><b>Bending Moment Diagram</b></small>
+                            </div>
+                            <div class="col-6 text-center">
+                                <small><b>Shear Force Diagram</b></small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_4_bmd.png" width="300"></p>
+                            </div>
+                            <div class="col-6 text-center">
+                                <p><img src="C:\Users\mattu\Documents\pondpy\example_reports\plots\secondary_4_sfd.png" width="300"></p>
+                            </div>
+                        </div>
+                        <br>
+                    
+                </div>
+            </div>
+            <br>
+            <!-- Disclaimer -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <h5><b>Disclaimer</b></h5>
+                            <small><i>
+                                The creator of this Python package (pondpy) does
+                                not guarantee the accuracy, completeness, or
+                                reliability of the results presented in this
+                                report. The results are intended for informational
+                                purposes only. They should not be relied upon as
+                                a substitute for engineering judgment. It is 
+                                essential that all designs and calculations be 
+                                verified and approved by a qualified design 
+                                professional to ensure their suitability and 
+                                compliance with applicable standards and regulations.
+                            </i></small>
                         </div>
                     </div>
                 </div>
