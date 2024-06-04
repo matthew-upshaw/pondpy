@@ -7,9 +7,9 @@ from .helpers.render_html import render_html
 ALLOWED_FILETYPES = ['html']
 
 module_dir = os.path.dirname(__file__)
-template_path = os.path.join(module_dir,'templates\\report_template.html')
-favicon_path = os.path.join(module_dir, 'templates\\favicon.ico')
-logo_path = os.path.join(module_dir, 'templates\\pondpy.svg')
+template_path = os.path.join(module_dir,'templates', 'report_template.html')
+favicon_path = os.path.join(module_dir, 'templates', 'favicon.ico')
+logo_path = os.path.join(module_dir, 'templates', 'pondpy.svg')
 toml_path = os.path.join(module_dir, '..', '..', 'pyproject.toml')
 
 class ReportBuilder:

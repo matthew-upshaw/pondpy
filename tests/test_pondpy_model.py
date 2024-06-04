@@ -47,7 +47,7 @@ q_rl = 22.4/1000/144 # Surface rain load at secondary drainage inlet in ksi
 
 loading = Loading(q_dl, q_rl)
 
-output_folder = os.path.join(os.path.dirname(__file__), 'report\\report_test')
+output_folder = os.path.join(os.path.dirname(__file__), 'report', 'report_test')
 
 @pytest.fixture
 def pondpy_model_default():
