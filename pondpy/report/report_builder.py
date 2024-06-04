@@ -1,12 +1,18 @@
+import datetime
 import os
 
 from .helpers.generate_pdf import generate_pdf
+from .helpers.get_version_from_pyproject import get_version_from_pyproject
 from .helpers.render_html import render_html
 
 ALLOWED_FILETYPES = ['html', 'pdf']
 
 module_dir = os.path.dirname(__file__)
 template_path = os.path.join(module_dir,'templates\\report_template.html')
+favicon_path = os.path.join(module_dir, 'templates\\favicon.ico')
+logo_path = os.path.join(module_dir, 'templates\\pondpy.svg')
+toml_path = os.path.join(module_dir, '..', '..', 'pyproject.toml')
+
 class ReportBuilder:
     '''
     A class to organize data from a PondPyModel object and put it into a
@@ -16,8 +22,26 @@ class ReportBuilder:
 
     Attributes
     ----------
-    output_path : str
-        string representing the location to which the pdf should be saved
+    favicon_path : str
+        string representing the path to the pondpy favicon
+    filename : str
+        string represengting the output filename
+    filetype : str
+        string representing the desired output file type
+    generated_at : datetime.datetime
+        datetime.datetime object representing the time the report was generated
+    logo_path : str
+        string representing the path to the pondpy logo
+    output_folder : str
+        string representing the location to which the report should be saved
+    version_no : str
+        string representing the version number of the package
+
+    Methods
+    -------
+    save_report(context)
+        Generates the report and saves it to the location specified by the
+        output_folder, filename, and filetype attributes.
     '''
     def __init__(self, output_folder, filename='pondpy_results', filetype='html'):
         '''
@@ -45,9 +69,13 @@ class ReportBuilder:
         if not isinstance(output_folder, str):
             raise TypeError('output_folder must be a string')
 
+        self.favicon_path = favicon_path
         self.filename = filename
         self.filetype = filetype
+        self.generated_at = datetime.datetime.now()
+        self.logo_path = logo_path
         self.output_folder = output_folder
+        self.version_no = get_version_from_pyproject(toml_path=toml_path)
 
     def save_report(self, context):
         '''

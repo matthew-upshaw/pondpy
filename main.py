@@ -2,11 +2,23 @@
 This module contains an example of how to set
 up and run an analysis of a simple roof bay.
 '''
+import os
+
 from joistpy import sji
 from steelpy import aisc
-import pdb
+
+
+output_folder = os.path.join(os.path.dirname(__file__), 'example_reports')
+output_filename = 'pondpy_results'
+output_filetype = 'html'
+
 def run_analysis(model):
     model.perform_analysis()
+    model.generate_report(
+        output_folder=output_folder,
+        filename=output_filename,
+        filetype=output_filetype
+    )
 
 from pondpy import (
     SteelBeamSize,
@@ -51,4 +63,3 @@ pondpy_model = PondPyModel(p_framing, s_framing, loading)
 
 if __name__ == '__main__':
     run_analysis(pondpy_model)
-    pdb.set_trace()

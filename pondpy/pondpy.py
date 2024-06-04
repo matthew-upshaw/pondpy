@@ -23,6 +23,8 @@ class PondPyModel:
         bool indicating whether the analysis has been performed
     impounded_depth : dict
         dictionary containing impounded water depth at model nodes for both primary and secondary members
+    iter_results : dict
+        dictionary holding iterative analysis results
     loading : loading object
         Loading object representing the loading criteria for the roof bay
     max_iter : int
@@ -96,6 +98,7 @@ class PondPyModel:
             raise TypeError('stop_criterion must be a positive float')
 
         self.analysis_complete = False
+        self.iter_results = {}
         self.loading = loading
         self.max_iter = max_iter
         self.mirrored_left = mirrored_left
@@ -283,7 +286,18 @@ class PondPyModel:
         )
 
         context = {
-            'primary_members': self.roof_bay_model.primary_models,
+            'favicon_path':report_builder.favicon_path,
+            'generated_at':report_builder.generated_at,
+            'logo_path':report_builder.logo_path,
+            'version_no':report_builder.version_no,
+            'dead_load':round(self.loading.dead_load*144*1000, 1),
+            'initial_rain_depth':round(self.loading.dead_load*144*1000/5.2, 2),
+            'model': self,
+            'num_iter':self.iter_results['Iterations'],
+            'num_p':len(self.roof_bay_model.primary_models),
+            'num_s':len(self.roof_bay_model.secondary_models),
+            'rain_load':round(self.loading.rain_load*144*1000, 1),
+            'w_water':round(self.iter_results['Weight'][-1], 2),
         }
 
         report_builder.save_report(context=context)
@@ -332,6 +346,7 @@ class PondPyModel:
                 }
 
                 self.analysis_complete = True
+                self.iter_results = output
 
                 return output
             
