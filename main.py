@@ -17,7 +17,11 @@ def run_analysis(model):
     model.generate_report(
         output_folder=output_folder,
         filename=output_filename,
-        filetype=output_filetype
+        filetype=output_filetype,
+        company='Example Company',
+        proj_num='12345',
+        proj_name='Example Project',
+        desc='A sample calculation',
     )
 
 from pondpy import (

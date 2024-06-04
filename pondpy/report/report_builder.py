@@ -1,11 +1,10 @@
 import datetime
 import os
 
-from .helpers.generate_pdf import generate_pdf
 from .helpers.get_version_from_pyproject import get_version_from_pyproject
 from .helpers.render_html import render_html
 
-ALLOWED_FILETYPES = ['html', 'pdf']
+ALLOWED_FILETYPES = ['html']
 
 module_dir = os.path.dirname(__file__)
 template_path = os.path.join(module_dir,'templates\\report_template.html')
@@ -65,7 +64,7 @@ class ReportBuilder:
         if not isinstance(filetype, str):
             raise TypeError('filetype must be a string')
         if filetype not in ALLOWED_FILETYPES:
-            raise ValueError('filetype must be either "pdf" or "html"')
+            raise ValueError('filetype must be either "html"')
         if not isinstance(output_folder, str):
             raise TypeError('output_folder must be a string')
 
@@ -95,9 +94,7 @@ class ReportBuilder:
         html_string = render_html(template_path=template_path, context=context)
         output_path = os.path.join(self.output_folder, self.filename+'.'+self.filetype)
 
-        if self.filetype == 'pdf':
-            generate_pdf(html_content=html_string, output_path=output_path)
-        elif self.filetype == 'html':
+        if self.filetype == 'html':
             with open(output_path, 'w') as output_file:
                 output_file.write(html_string)
 

@@ -259,18 +259,26 @@ class PondPyModel:
         self.roof_bay = RoofBay(self.primary_framing, self.secondary_framing, self.loading, self.mirrored_left, self.mirrored_right)
         self.roof_bay_model = RoofBayModel(self.roof_bay)
 
-    def generate_report(self, output_folder, filename='pondpy_results', filetype='html'):
+    def generate_report(self, output_folder, filename='pondpy_results', filetype='html', company='', proj_num='', proj_name='', desc=''):
         '''
         Generates a report for the analyzed PondPyModel object.
 
         Parameters
         ----------
+        company : str, optional
+            string representing the company name
+        desc : str, optional
+            string representing the calculation description
         filename : str, optional
             string represengting the output filename
         filetype : str, optional
             string representing the desired output file type
         output_folder : str
             string representing the location to which the report should be saved
+        proj_name : str, optional
+            string representing the project name
+        proj_num : str, optional
+            string representing the project number
 
         Returns
         -------
@@ -286,6 +294,9 @@ class PondPyModel:
         )
 
         context = {
+            'company':company,
+            'desc':desc,
+            'project_info':proj_num+'-'+proj_name,
             'favicon_path':report_builder.favicon_path,
             'generated_at':report_builder.generated_at,
             'logo_path':report_builder.logo_path,
