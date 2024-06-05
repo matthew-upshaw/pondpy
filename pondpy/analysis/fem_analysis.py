@@ -565,8 +565,9 @@ class BeamModel:
                     points_of_interest.append(point)
 
         points_of_interest.sort()
+        poi = [item for item in points_of_interest if item <= self.beam.length]
 
-        self.points_of_interest = points_of_interest
+        self.points_of_interest = poi
 
     def _set_dload_elems(self):
         '''
