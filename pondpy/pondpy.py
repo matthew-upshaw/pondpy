@@ -10,6 +10,8 @@ from pondpy import (
     RoofBay,
     RoofBayModel,
     SecondaryFraming,
+    SteelBeamDesign,
+    SteelJoistDesign,
 )
 
 from .report.helpers.save_figures import save_figure
@@ -352,7 +354,25 @@ class PondPyModel:
                 cur_path = os.path.join(output_folder, 'plots\\', f'{cur_name}.png')
                 save_figure(cur_fig, cur_name, os.path.join(output_folder, 'plots\\'))
 
-                s_plot_paths[key].append(cur_path)  
+                s_plot_paths[key].append(cur_path)
+
+        p_mom_cap = []
+        p_shear_cap = []
+
+        for p_model in self.roof_bay_model.primary_models:
+            p_mom_cap.append(round(SteelBeamDesign(section=p_model.beam.size.properties, unbraced_length=0).get_moment_capacity(), 2))
+            p_shear_cap.append(round(SteelBeamDesign(section=p_model.beam.size.properties, unbraced_length=0).get_shear_capacity(), 2))
+
+        s_mom_cap = []
+        s_shear_cap = []
+
+        for s_model in self.roof_bay_model.secondary_models:
+            if s_model.beam.size.section_type == 'AISC':
+                s_mom_cap.append(round(SteelBeamDesign(section=s_model.beam.size.properties, unbraced_length=0).get_moment_capacity(), 2))
+                s_shear_cap.append(round(SteelBeamDesign(section=s_model.beam.size.properties, unbraced_length=0).get_shear_capacity(), 2))
+            elif s_model.beam.size.section_type == 'SJI':
+                s_mom_cap.append(round(SteelJoistDesign(designation=s_model.beam.size.properties, span=s_model.beam.length).get_moment_capacity(), 2))
+                s_shear_cap.append(SteelJoistDesign(designation=s_model.beam.size.properties, span=s_model.beam.length).get_shear_capacity())
         
         context = {
             'company':company,
@@ -372,11 +392,15 @@ class PondPyModel:
             'p_max_defl':p_max_defl,
             'p_max_mom':p_max_mom,
             'p_max_shear':p_max_shear,
+            'p_mom_cap': p_mom_cap,
+            'p_shear_cap': p_shear_cap,
             'p_plot_paths':p_plot_paths,
             'secondary_members':self.roof_bay_model.secondary_models,
             's_max_defl':s_max_defl,
             's_max_mom':s_max_mom,
             's_max_shear':s_max_shear,
+            's_mom_cap': s_mom_cap,
+            's_shear_cap': s_shear_cap,
             's_plot_paths':s_plot_paths,
             'rain_load':round(self.loading.rain_load*144*1000, 1),
             'run_time':round(self.iter_results['Time'], 2),

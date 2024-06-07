@@ -575,8 +575,8 @@ class RoofBayModel:
 
         # First loop over the primary models
         for p_model in self.primary_models:
-            cur_bmd, _ = p_model.plot_bmd()
-            cur_sfd, _ = p_model.plot_sfd()
+            cur_bmd, _ = p_model.plot_bmd(with_design=True)
+            cur_sfd, _ = p_model.plot_sfd(with_design=True)
             cur_defl, _ = p_model.plot_deflected_shape()
 
             plots['bmd']['Primary'].append(cur_bmd)
@@ -585,8 +585,8 @@ class RoofBayModel:
 
         # Next loop over the secondary models
         for s_model in self.secondary_models:
-            cur_bmd, _ = s_model.plot_bmd()
-            cur_sfd, _ = s_model.plot_sfd()
+            cur_bmd, _ = s_model.plot_bmd(with_design=True)
+            cur_sfd, _ = s_model.plot_sfd(with_design=True)
             cur_defl, _ = s_model.plot_deflected_shape()
 
             plots['bmd']['Secondary'].append(cur_bmd)

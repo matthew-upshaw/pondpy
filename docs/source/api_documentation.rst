@@ -81,6 +81,12 @@ SecondaryMember
 .. autoclass:: pondpy.analysis.pond_analysis.SecondaryMember
     :members:
 
+SteelJoistDesign
+----------------
+
+.. autoclass:: pondpy.SteelJoistDesign
+    :members:
+
 ReportBuilder
 -------------
 
