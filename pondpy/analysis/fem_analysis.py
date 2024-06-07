@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import steelpy
 
+from pondpy import SteelBeamDesign, SteelJoistDesign
+
 beam_section_types = ['AISC']
 joist_section_types = ['SJI']
 
@@ -812,13 +814,15 @@ class BeamModel:
             self.element_forces = elemxyM
             self.support_reactions = support_reactions
 
-    def plot_bmd(self):
+    def plot_bmd(self, with_design=False):
         '''
         Plots the bending moment diagram of the analyzed beam.
 
         Parameters
         ----------
-        None
+        with_design : bool, optional
+            bool indicating whether the design capacity should be plotted
+            along with the bmd
 
         Returns
         -------
@@ -853,24 +857,33 @@ class BeamModel:
         lval_bmd = np.zeros(2*(len(self.model_nodes)))
         lval_bmd_count = 0
         for i_lval_bmd in range(len(self.model_nodes)):
-            lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]/12
-            lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/12
+            lval_bmd[i_lval_bmd+lval_bmd_count] = self.model_nodes[i_lval_bmd]/self.beam.length
+            lval_bmd[i_lval_bmd+lval_bmd_count+1] = self.model_nodes[i_lval_bmd]/self.beam.length
             lval_bmd_count += 1
         
         fig, ax = plt.subplots()
-        ax.plot(lval_bmd.tolist(), bmd_val.tolist(), 'b-')
+        bmd_dem, = ax.plot(lval_bmd.tolist(), bmd_val.tolist(), 'b-', label='Demand')
 
-        ax.set_xlabel('Length (ft)')
+        ax.set_xlabel('Unitary Length')
         ax.set_ylabel('Bending Moment (k-ft)')
         ax.grid()
+
+        if with_design:
+            if self.beam.size.section_type == 'AISC':
+                mom_capacity = SteelBeamDesign(section=self.beam.size.properties, unbraced_length=0).get_moment_capacity()
+            elif self.beam.size.section_type == 'SJI':
+                mom_capacity = SteelJoistDesign(designation=self.beam.size.properties, span=self.beam.length).get_moment_capacity()
+
+            bmd_cap, = ax.plot([0, 1], [mom_capacity, mom_capacity], 'r-', label='Capacity')
+            ax.legend(handles=[bmd_dem, bmd_cap], loc='upper right')
 
         max_mom = max(bmd_val.tolist())
         min_mom = min(bmd_val.tolist())
         if abs(max_mom) > abs(min_mom):
-            x_max = lval_bmd.tolist()[bmd_val.tolist().index(max_mom)]
+            x_max = lval_bmd.tolist()[bmd_val.tolist().index(max_mom)]*self.beam.length/12
             abs_max_mom = abs(max_mom)
         elif abs(min_mom) >= abs(max_mom):
-            x_max = lval_bmd.tolist()[bmd_val.tolist().index(min_mom)]
+            x_max = lval_bmd.tolist()[bmd_val.tolist().index(min_mom)]*self.beam.length/12
             abs_max_mom = abs(min_mom)
         
         matplotlib.pyplot.close()
@@ -903,26 +916,28 @@ class BeamModel:
                 y_disp.append(0.0)
         
         fig, ax = plt.subplots()
-        ax.plot([x/12 for x in self.model_nodes], y_disp, 'b-')
+        ax.plot([x/self.beam.length for x in self.model_nodes], y_disp, 'b-')
 
-        ax.set_xlabel('Length (ft)')
+        ax.set_xlabel('Unitary Length')
         ax.set_ylabel(f'Deflection (in) - Scale={scale}:1')
         ax.grid()
 
         max_defl = min(y_disp)
-        x_max = [x/12 for x in self.model_nodes][y_disp.index(max_defl)]
+        x_max = [x/self.beam.length for x in self.model_nodes][y_disp.index(max_defl)]*self.beam.length/12
         
         matplotlib.pyplot.close()
 
         return fig, (round(max_defl, 2), round(x_max, 2))
 
-    def plot_sfd(self):
+    def plot_sfd(self, with_design = False):
         '''
         Plots the shear force diagram of the analyzed beam.
 
         Parameters
         ----------
-        None
+        with_design : bool, optional
+            bool indicating whether the design capacity should be plotted
+            along with the sfd
 
         Returns
         -------
@@ -954,24 +969,36 @@ class BeamModel:
         lval_sfd = np.zeros(2*(len(self.model_nodes)))
         lval_sfd_count = 0
         for i_lval_sfd in range(len(self.model_nodes)):
-            lval_sfd[i_lval_sfd+lval_sfd_count] = self.model_nodes[i_lval_sfd]/12
-            lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/12
+            lval_sfd[i_lval_sfd+lval_sfd_count] = self.model_nodes[i_lval_sfd]/self.beam.length
+            lval_sfd[i_lval_sfd+lval_sfd_count+1] = self.model_nodes[i_lval_sfd]/self.beam.length
             lval_sfd_count += 1
         
         fig, ax = plt.subplots()
-        ax.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-')
+        sfd_dem, = ax.plot(lval_sfd.tolist(), sfd_val.tolist(), 'b-', label='Demand')
 
-        ax.set_xlabel('Length (ft)')
+        ax.set_xlabel('Unitary Length')
         ax.set_ylabel('Shear Force (k)')
         ax.grid()
+
+        if with_design:
+            if self.beam.size.section_type == 'AISC':
+                shear_capacity = SteelBeamDesign(section=self.beam.size.properties, unbraced_length=0).get_shear_capacity()
+                sfd_cap_pos, = ax.plot([0, 1], [shear_capacity, shear_capacity], 'r-', label='Capacity')
+                sfd_cap_neg, = ax.plot([0, 1], [-shear_capacity, -shear_capacity], 'r', label='Capacity')
+                ax.legend(handles=[sfd_dem, sfd_cap_pos, sfd_cap_neg], loc='upper right')
+            elif self.beam.size.section_type == 'SJI':
+                shear_plot_points = SteelJoistDesign(designation=self.beam.size.properties, span=self.beam.length).get_shear_plot_points()
+                sfd_cap, = ax.plot(shear_plot_points[0].tolist(), shear_plot_points[1].tolist(), 'r-', label='Capacity')
+                ax.legend(handles=[sfd_dem, sfd_cap], loc='upper right')
+
 
         max_shear = max(sfd_val.tolist())
         min_shear = min(sfd_val.tolist())
         if abs(max_shear) > abs(min_shear):
-            x_max = lval_sfd.tolist()[sfd_val.tolist().index(max_shear)]
+            x_max = lval_sfd.tolist()[sfd_val.tolist().index(max_shear)]*self.beam.length/12
             abs_max_shear = abs(max_shear)
         elif abs(min_shear) >= abs(max_shear):
-            x_max = lval_sfd.tolist()[sfd_val.tolist().index(min_shear)]
+            x_max = lval_sfd.tolist()[sfd_val.tolist().index(min_shear)]*self.beam.length/12
             abs_max_shear = abs(min_shear)
         
         matplotlib.pyplot.close()

@@ -187,6 +187,66 @@
                 </div>
             </div>
             <br>
+            <!-- Design Summary Section -->
+            <div class="row d-flex align-items-top border rounded">
+                <div class="col-12">
+                    <div class="row border-bottom mb-2">
+                        <div class="col-12">
+                            <h5><b>Design Summary</b></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"><small>Member</small></th>
+                                        <th scope="col"><small>Size</small></th>
+                                        <th scope="col"><small>Moment Demand (k-ft)</small></th>
+                                        <th scope="col"><small>Moment Capacity (k-ft)</small></th>
+                                        <th scope="col"><small>Shear Demand (k)</small></th>
+                                        <th scope="col"><small>Shear Capacity (k)</small></th>
+                                        <th scope="col"><small>Deflection (in)</small></th>
+                                        <th scope="col"><small>L/d</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in primary_members %}
+                                        <tr>
+                                            <td scope="row"><small>P - {{ loop.index }}</small></td>
+                                            <td><small>{{ member.beam.size.name }}</small></td>
+                                            <td><small>{{ p_max_mom[loop.index-1][0] }}</small></td>
+                                            <td><small>{{ p_mom_cap[loop.index-1] }}</small></td>
+                                            <td><small>{{ p_max_shear[loop.index-1][0] }}</small></td>
+                                            <td><small>{{ p_shear_cap[loop.index-1] }}</small></td>
+                                            <td><small>{{ p_max_defl[loop.index-1][0] }}</small></td>
+                                            <td><small>{{ -(member.beam.length/p_max_defl[loop.index-1][0])|round(2) }}</small></td>
+                                        </tr>
+                                    {% endfor %}
+                                    {% for member in secondary_members %}
+                                        <tr>
+                                            <td scope="row"><small>S - {{ loop.index }}</small></td>
+                                            <td><small>{{ member.beam.size.name }}</small></td>
+                                            <td><small>{{ s_max_mom[loop.index-1][0] }}</small></td>
+                                            <td><small>{{ s_mom_cap[loop.index-1] }}</small></td>
+                                            {% if member.beam.size.section_type == 'AISC' %}
+                                                <td><small>{{ s_max_shear[loop.index-1][0] }}</small></td>
+                                                <td><small>{{ s_shear_cap[loop.index-1] }}</small></td>
+                                            {% elif member.beam.size.section_type == 'SJI' %}
+                                                <td><small>{{ s_max_shear[loop.index-1][0] }}</small></td>
+                                                <td><small>{{ s_shear_cap[loop.index-1][1] }}</small></td>
+                                            {% endif %}
+                                            <td><small>{{ s_max_defl[loop.index-1][0] }}</small></td>
+                                            <td><small>{{ -(member.beam.length/s_max_defl[loop.index-1][0])|round(2) }}</small></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
             <!-- Disclaimer -->
             <div class="row d-flex align-items-top border rounded">
                 <div class="col-12">

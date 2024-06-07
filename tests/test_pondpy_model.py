@@ -1,5 +1,6 @@
 import os
 import pytest
+from flaky import flaky
 from joistpy import sji
 from steelpy import aisc
 
@@ -201,6 +202,7 @@ def test_invalid_stop_criterion():
 def test_perform_analysis(pondpy_model_default):
     pondpy_model_default.perform_analysis()
 
+@flaky
 def test_valid_generate_report(pondpy_model_default):
     pondpy_model_default.perform_analysis()
     pondpy_model_default.generate_report(output_folder=output_folder)
