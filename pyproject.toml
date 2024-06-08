@@ -13,6 +13,7 @@ scipy = "1.13.1"
 joistpy = "1.0.3"
 steelpy = "1.1.1"
 matplotlib = "3.9.0"
+toml = "0.10.2"
 
 [project.urls]
 "Homepage" = "https://github.com/matthew-upshaw/pondpy"
