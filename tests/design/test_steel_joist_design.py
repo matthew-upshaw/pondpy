@@ -4,6 +4,7 @@ from joistpy import sji
 from pondpy import SteelJoistDesign
 
 joist = sji.K_Series.K_14K1
+kcs_joist = sji.KCS_Series.KCS_14KCS1
 
 @pytest.fixture
 def steel_joist_design():
@@ -40,3 +41,15 @@ def test_get_shear_capacity(steel_joist_design):
 
 def test_get_shear_plot_points(steel_joist_design):
     steel_joist_design.get_shear_plot_points()
+
+def test_get_kcs_shear_capacity():
+    kcs_joist_test = SteelJoistDesign(designation=kcs_joist, span=20*12)
+    shear_cap = kcs_joist_test.get_shear_capacity()
+    assert isinstance(shear_cap, tuple)
+    assert len(shear_cap) == 2
+    assert shear_cap[0] == 2900/1000
+    assert shear_cap[1] == 2900/1000
+
+def tes_get_kcs_shear_plot_points():
+    kcs_joist_test = SteelJoistDesign(designation=kcs_joist, span=20*12)
+    kcs_joist_test.get_shear_plot_points()
