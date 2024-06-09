@@ -99,8 +99,12 @@ class SteelJoistDesign:
             under consideration using the total safe load from SJI load tables
             for the given span
         '''
-        max_shear = self.w_total*(self.span/12)/2/1000
-        min_shear = 0.25*max_shear
+        if 'KCS' in self.designation.name:
+            max_shear = self.designation.shear_capacity/1000
+            min_shear = self.designation.shear_capacity/1000
+        else:
+            max_shear = self.w_total*(self.span/12)/2/1000
+            min_shear = 0.25*max_shear
 
         return (min_shear, max_shear)
     
@@ -122,24 +126,26 @@ class SteelJoistDesign:
         '''
         _, max_shear = self.get_shear_capacity()
 
-        distance = np.array([0, 3 / 8, 1 / 2 - 0.01, 1 / 2 + 0.01, 5 / 8, 1])
+        if 'KCS' in self.designation.name:
+            distance = np.array([0, 0, 1, 1, 0, 0])
+            shear_value = np.array([0, 1, 1, -1, -1, 0])
+        else:
+            distance = np.array([0, 3 / 8, 1 / 2 - 0.01, 1 / 2 + 0.01, 5 / 8, 1])
 
-        shear_value = np.piecewise(
-            distance,
-            [
-                distance <= 3/8,
-                (3/8 < distance) & (distance <=1/2),
-                (1/2 < distance) & (distance <= 5/8),
-                5/8 < distance,
-            ],
-            [
-                lambda distance: (distance-3/8)/(0-3/8)*(1-0.25)+0.25,
-                0.25,
-                -0.25,
-                lambda distance: (distance-5/8)/(1-5/8)*(-1+0.25)-0.25,
-            ],
-        )
+            shear_value = np.piecewise(
+                distance,
+                [
+                    distance <= 3/8,
+                    (3/8 < distance) & (distance <=1/2),
+                    (1/2 < distance) & (distance <= 5/8),
+                    5/8 < distance,
+                ],
+                [
+                    lambda distance: (distance-3/8)/(0-3/8)*(1-0.25)+0.25,
+                    0.25,
+                    -0.25,
+                    lambda distance: (distance-5/8)/(1-5/8)*(-1+0.25)-0.25,
+                ],
+            )
 
         return np.array([distance, shear_value*max_shear])
-
-
