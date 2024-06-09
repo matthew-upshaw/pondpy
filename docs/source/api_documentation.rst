@@ -102,5 +102,5 @@ ReportBuilder
 PondPyModel
 -----------
 
-.. autoclass:: pondpy.PondPyModel
+.. autoclass:: pondpy.pondpy.PondPyModel
     :members:
