@@ -376,7 +376,7 @@ class RoofBayModel:
             # Retrieve self-weight from primary_sw dictionary
             p_sw = self.roof_bay.primary_sw[idx]
             # Add self-weight to the model
-            cur_model.add_beam_dload(p_sw)
+            cur_model.add_beam_dload(p_sw, add_type='replace')
 
             primary_models.append(cur_model)
 
